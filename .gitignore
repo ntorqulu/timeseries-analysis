@@ -1,0 +1,49 @@
+# Large data and model files
+ML/Kaggle/ITSAFAKE_1/datasets/
+ML/Kaggle/ITSAFAKE_1/models/
+ML/Kaggle/ITSAFAKE_2/datasets/
+ML/Kaggle/ITSAFAKE_2/models/
+AGILE/team-A1-recsys/data/
+AGILE/team-A1-recsys/mlruns/
+*.npz
+*.pt
+*.pth
+*.pkl
+*.pickle
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv
+dist/
+build/
+*.egg-info/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# MLflow
+mlruns/
+.mlflow/
+
+# DVC
+.dvc/
+
+# Notebooks
+.ipynb_checkpoints/
+
+# Log files
+*.log
