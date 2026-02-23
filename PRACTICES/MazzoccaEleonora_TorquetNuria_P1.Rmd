@@ -1,0 +1,82 @@
+---
+title: 'Practical 1 — Airline Passengers'
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+library(readxl)
+library(tseries)
+set.seed(1)
+```
+
+## Load data
+
+```{r load-data}
+# AirPassengers is a built-in monthly `ts` object
+AP <- AirPassengers
+class(AP)
+summary(AP)
+head(AP)
+```
+
+## IID and Gaussian white noise examples
+
+```{r noise-examples}
+n <- 1000
+z1 <- rnorm(n)
+plot(z1[1:200], type = "l", main = "Gaussian white noise (sample)")
+hist(z1, probability = TRUE, main = "Histogram of standard normal sample")
+x <- seq(-4, 4, length = 200)
+lines(x, dnorm(x), col = "red")
+```
+
+### White-noise variations and diagnostics
+
+```{r noise-variations}
+# Gaussian white noise with non-zero mean and larger sd
+n <- 10000
+z3 <- rnorm(n, mean = 10, sd = 5)
+plot(z3[1:400], type = "l", main = "Gaussian white noise (mean=10, sd=5)")
+hist(z3, probability = TRUE, main = "Histogram (mean=10, sd=5)")
+lines(density(z3), col = "blue")
+
+# Corrected: use consistent variable for sample size
+n_large <- 10000
+z <- rnorm(n_large, mean = 5, sd = 2)
+acf(z, main = "Correlogram of Gaussian white noise (mean=5, sd=2)")
+```
+
+## Random walk (exercise 1b.2)
+
+```{r random-walk}
+# simulate a simple random walk and inspect trajectory and differences
+n <- 1000
+set.seed(1)
+z_rw <- rnorm(n)
+rw <- cumsum(z_rw)
+plot(rw, type = "o", main = "Random walk (n=1000)", xlab = "Time", ylab = "Value")
+
+# replicate with different seeds in a 3-row layout
+layout(matrix(1:3, nrow = 3))
+for (m in 1:3) {
+  set.seed(m)
+  z_tmp <- rnorm(n)
+  rw_tmp <- cumsum(z_tmp)
+  plot(rw_tmp, type = "o", main = paste("Random walk with seed", m), xlab = "Time")
+}
+layout(1)
+
+# alternative construction (iterative) for larger n
+n2 <- 10000
+w <- rnorm(n2)
+x_alt <- numeric(n2)
+x_alt[1] <- w[1]
+for (t in 2:n2) x_alt[t] <- x_alt[t-1] + w[t]
+plot(x_alt, type = "l", main = "Random walk (iterative, n=10000)")
+
+# first difference of a random walk is (approximately) iid noise
+acf(diff(x_alt), main = "Correlogram of first difference of random walk")
+```
