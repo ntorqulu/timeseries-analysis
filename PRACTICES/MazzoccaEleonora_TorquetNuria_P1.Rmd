@@ -5,6 +5,302 @@ output:
     df_print: paged
 ---
 
+# Practical 1A
+
+### Introduction to Time Series Analysis with R
+
+## 1. Importing data files with RStudio & preliminary manipulations.
+
+As first thing in this practical, we will import a time series data set from RStudio itself, and we will see how to create the same time series manually step-by-step, by using the "ts" function from the "tseries" package.
+
+```{r}
+#1. Importing data files with RStudio & preliminary manipulations.
+
+# Import AirPassengers file from RStudio data
+
+library(readxl)
+data("AirPassengers")
+AP<- AirPassengers
+print("Time series from the AirPassenger dataset (TIME SERIES AP):")
+AP
+cat("\n")
+cat("Class type of the latter time series:", class(AP), "\n")
+
+# Save number of passengers in vector x and date (time) in vector t
+x <- as.numeric(AP)
+t <- time(AP)
+
+cat("\n")
+# Create a time series using the "tseries" package, with periodicity 12 months (frequency=12) and starting from 1949, 
+# We will use the same numbers of passengers as given in the AirPassenger data (i.e. "x")
+xt<-ts(x,start=1949,frequency=12)
+print("Time series created manually, using passengers numbers from AirPassenger dataset (TIME SERIES xt):")
+xt
+cat("\n")
+
+cat("Class type of the latter time series:", class(xt), "\n")
+
+# xt and AP are two identical time series, just created in two different ways.
+```
+
+As expected, both time series "AP" and "xt" are the same, both in terms of time, frequency, passengers and class types (they both are class type ts). Let's now explore the summary statistics of the time series "AP":
+
+```{r}
+summary(AP)
+```
+
+These numbers are coherent with the plot below, titled "Airline Passengers", where indeed minimum values are around 100 passengers (104) and maximum are around 600 passengers (622).
+
+## 2. Graphical representation
+
+We will see different options to plot the time series:
+
+-   we will try the two cases suggested by the practical (represent datapoints with circles and connect them with lines, or represent datapoints with a number representing the n. of passengers)
+
+-   and we will experiment few more options discovered through the "help" function of "plot", such as: histogram, only points, stair steps (discretized view)
+
+```{r}
+# Option 1 for plotting: lines connected through circles
+# In this case first argument is time series as one unique element (xt)
+plot(xt, main="Airline Passengers", xlab="time", ylab="passengers", type="o")
+
+# Option 2 for plotting: lines connected through numbers
+# In this case the time series is composed by the vectors x and t, so both have to be given as first arguments:
+# time on x-axis (so t is the 1° argument) and number of passengers on y-axis (so x is the 2° argument)
+plot(t, x, main="Airline Passengers", xlab="time", ylab="passengers", type="l")
+
+
+# Check the help for the “plot” function, in particular the different options for “type”.
+help("plot")
+
+# I will try to plot the histogram
+plot(xt, main="Airline Passengers", xlab="time", ylab="passengers", type="h")
+
+# Plot only the points
+plot(xt, main="Airline Passengers", xlab="time", ylab="passengers", type="p")
+
+# Plot stair steps
+plot(xt, main="Airline Passengers", xlab="time", ylab="passengers", type="s")
+
+```
+
+In this case, we can observe that the series shows an overall increasing trend over the years. However, it may not always be trivial to see the global trend - as time series data are often characterized by fluctuations, short-term increases and decreases, and irregular spikes.
+
+For this purpose, we use the aggregate function: it summarizes (with a sum function) the amount of passengers per year. This results in a much smoother plot, allowing us to visualize the underlying trend more clearly.
+
+Furthermore, it is useful to understand how values typically vary across months within a year. For this, we use the cycle function: it groups the number of passengers by month, so that we can easily visualize the average number of passengers per month and their range of observed values. This will be shown in the boxplot below.
+
+```{r}
+# Another interesting option is to use "aggregate" and "cycle" to make a yearly summary:
+layout(1:2, heights = c(4, 4))  # we add "heights" parameter so that the scale of y-axis is bigger and we are able to see more values on the y-axis (otherwise we could only see the minimum values) 
+par(mar = c(4, 5, 2, 1))  # more room for y-axis labels
+plot(aggregate(xt), main="Aggregated plot of passengers throughout the years") #aggregate collapses the series by applying a summarizing function (by default sum) over each cycle
+                    #for example with monthly & yearly data like in AirPassengers dataset, it groups all months of each year together so that we can visualize the total number of passengers for each year
+
+boxplot(xt~cycle(xt), main="Box plot of passengers throughout the months") #Create box plots of the time series grouped by its seasonal cycle (12 monhts)
+```
+
+## 3. Transforming a time series
+
+We are now going to apply a logarithmic transformation to the series, to stabilize the variance.
+
+```{r}
+
+y<-log(x)
+y
+
+plot (y, main = "Logarithmic transformation of passengers", xlab="Time", ylab="Log(Passengers)",type="o")
+
+# I will plot also omitting the "t" so that all the numbers disappear, to have a clearer view of the trend
+plot (t, y, main = "Logarithmic transformation of passengers", xlab="Time", ylab="Log(Passengers)",type="o")
+
+```
+
+**Observations:**
+
+1.  In the ***Airline Passenger plot*** above, at the beginning of this practical, the variability was large and increasing over time: the peaks get bigger as the time increases. Which means that the **variance is not constant**, it's a non-stationary variance. In other words, the early years fluctuate a bit, while the later years fluctuate much more.
+2.  In the ***Logarithmic transformation of passengers plot***, we can observe that the variability is smaller: while the upward trend is still present, the fluctuations look more uniform across time. Which means that the **variance is more stable**.
+
+As the practical suggest, we now explore how powerful R is in representing functions. For example:
+
+```{r}
+
+t2<-1:500
+c<-2*cos(2*pi*t2/50+0.6*pi)
+plot(t2, c, type="l", xlab="Time", ylab="Cosine signal (amplitude)")
+```
+
+We defined the expression as a cosine signal with amplitude 2, period 50 time units, and a phase shift of 0.6π. With R it's extremely easy to plot this, and observe that it's a periodic time series with constant variance.
+
+## 4. Estimating a linear trend.
+
+In the code above we have defined two objects, t and x (time and airline passengers respectively). We will try, in the next block, to obtain the best linear approximation of our data:
+
+```{r}
+t3<-1:144 # create a simple time index:
+line=lm(y~t3) # fits a linear regression model (fit the best straight line through the data)
+summary(line)
+
+plot(t3, y, main="Airline Passengers (logarithmic transformation) and fit linear approximation", type="o", xlab="time", ylab="log(passengers)");
+abline(line) #Adds the fitted regression line on top of the plot
+
+#To extract the trend to the logarithmic data we can do:
+y<-log(x)
+lm(y~t3)
+trend<-0.01005*t3+4.81367
+trend
+z<-y-trend #z=residuals of the time series after log transforming and extracting the linear trend.
+z
+plot.ts(z, main="Residuals from fitting linearly the Logarithmic Airline Passengers")
+```
+
+In plot **"Airline Passengers (logarithmic transformation) and fit linear approximation"** we represented the logarithmic time series with the line that best fits it.
+
+Then, we represented the line as: ***trend = 0.01005\*t3 + 4.81367*** and computed the residuals:
+
+-   **At each time point:** *residual = actual value − predicted trend value*
+
+Eventually we plot the residuals: this allows us to observe the following aspects, which are otherwise not explained by the trend: seasonality, short-term fluctuations, noise.
+
+## 5. Estimating the seasonal component
+
+```{r}
+# To eliminate seasonality of z we can do:
+dim(z)<-c(12,12)
+z
+
+#We have converted the series in a matrix where rows are data of the same month.
+#Now we compute monthly row means, the global mean and the seasonal component.
+e<-apply(z,1,mean) 
+ee<-mean(e)
+s<-e-ee
+plot(s,main = "Seasonal components per month", ylab="Seasonal effect", xlab="Month", type="o")
+
+#We have now captured the seasonal component. Now we do:
+est<-array(s,144)
+est
+plot(est,main = "Seasonal pattern over time", ylab = "Seasonal effect", xlab = "Time",type="o")
+
+dim(z)<-144
+u<-z-est
+u
+plot(u, main="Irregular component (detrended and deseasonalized series)", xlab="Time index", ylab="Residual value", type="o")
+
+```
+
+The plots above show: 1. Seasonal component over 12 months 2. Seasonal component over time (144 time units) 3. Irregular component (de-trended and de-seasonalized series)
+
+The plots 1 and 2 show values around 0, specifically between approximately -0.2 and 0.2. This is due to the fact that the **seasonal component "s"** has been centered. In fact, it is obtained by subtracting the global mean from each monthly average: ***s = e-ee**.*
+
+Then, the **vector est** is obtained by repeating the *seasonal component "s"* over the entire time period (144 time units) so that it matches the length of the series. As a consequence, also the plot of est (2nd plot) is centered around 0, with values between approximately -0.2 and 0.2.
+
+The third plot shows the **irregular component "u"**, which also has negative and positive values around 0 but, contrarily to the other plots, it doesn't show any trend or seasonal pattern. In fact, u represents the residuals after removing trend and seasonality, and it's therefore the noise component of the time series (u = z - est).
+
+## 6. Filtering
+
+```{r}
+#Given x, the following instruction applies a moving average of order q=1 to the series: 
+v3<-filter(x, sides=2,rep(1,3)/3) #It replaces each observation with the average of its neighbors. So noise is reduced → smoother curve.
+
+v5<-filter(x, sides=2, rep(1,5)/5)
+v7<-filter(x, sides=2, rep(1,7)/7)
+
+plot(x, type="l", main = "Moving average smoothing", xlab="Time", ylab="Number of passengers", col="grey")
+lines(v3, col="blue")
+lines(v5, col="red")
+lines(v7, col="green")
+
+legend("topleft",
+       legend = c("Original series",
+                  "MA(3)",
+                  "MA(5)",
+                  "MA(7)"),
+       col = c("grey","blue","red","green"),
+       lty = 1,
+       lwd = 2)
+
+```
+
+What we represent in the plot:
+
+-   MA(3) → moving average with window size 3
+-   MA(5) → window size 5
+-   MA(7) → window size 7
+
+**Observations:**
+
+The moving averages make the time series smoother, by reducing the fluctuations. In fact, the moving average replaces each observation with the average of its neighbors (3, 5 or 7 neighbors depending on the size of the window).
+
+In this way the noise is "averaged out" for adjacent time points, and hence the filtered time series is smoother, with less noise and it highlights the underlying trend of the series more clearly.
+
+On the other side, larger windows also mean compromising with less visibility into short-term changes.
+
+## 7. Differentiation
+
+```{r fig.width=10, fig.height=5}
+y<-log(x)
+dy<-diff(y) #first order difference
+dy
+plot(dy, type="o", main="First difference of log(passengers)", xlab="Time", ylab="Change in log(passengers)")
+
+de<-diff(y, lag=12) #differences of order 12
+plot(de, type="o", main="Seasonal difference (lag 12)", xlab="Time", ylab="Seasonally differenced log(passengers)")
+
+de<-diff(y,12,2) #second differences of order 12
+plot(de, type="o", main="Second differences (lag 12)", xlab="Time", ylab="Second differenced log(passengers)")
+
+
+y<-log(x)
+dy12<-diff(y, lag=12)
+#plot (dy12, xlab="time", ylab="passengers", type="o")
+ddy12<-diff(dy12)
+plot(ddy12, type="o", main="First and seasonal difference of log(passengers)", xlab="Time", ylab="Differenced log(passengers)")
+```
+
+In the section above we have divided the differentiation in 3 steps:
+
+1.  **First order differentiation:** for each time point, diff(y) computes the difference between the value of the time point y_t and the previous y\_{t-1}. We see that the linear trend is removed, there is no more an upward trend but rather the series fluctuates around zero. While the seasonality is still visible.
+
+2.  **Difference of order 12:** for each time point, diff(y, lag=12) computes the difference between the value of the time point y_t and the time point at 12 steps ago y\_{t-12}. Since frequency = 12, it compares each month with the same month last year. This removes the yearly seasonal pattern.
+
+3.  **Second differences of order 12**: it applies the difference of order 12 twice
+
+4.  **Seasonal + first difference**: here we first removed seasonality with a **Difference of order 12**, and then we removed the trend with a **First order differentiation**. In this case we observe a time series that does not have a trend nor seasonality and it fluctuates around zero.
+
+## 8. Decompositions
+
+The practical says to take the time series xt and decompose it directly using a moving average only, as in the following example:
+
+```{r}
+plot (decompose(xt))
+```
+
+This is a very useful view that already summarizes all the components that earlier we obtained by manually subtracting points of the time series. The "observed" time series is the one that we originally plotted, i.e. the original time series. And it is composed of the other elements plotted below it: **Observed = Trend + Seasonal + Random**. In fact, if we add the parameter **type="additive"** as in paragraph below, it will generate the same plot.
+
+Now we can extract the components:
+
+```{r}
+dec<-decompose(xt, type="additive")
+plot(dec)
+
+trend<-dec$trend
+seasonal<-dec$seasonal
+random<-dec$random
+
+layout(1:3)
+plot(trend)
+plot(seasonal)
+plot(random)
+```
+
+The *decompose* function allows to easily visualize what are the trend, seasonal and random components of the observed time series - as well as to extract such components in very less steps.
+
+------------------------------------------------------------------------
+
+# Practical 1B
+
+### Simulation of Time Series in R
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 library(readxl)
