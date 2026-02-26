@@ -1,8 +1,9 @@
 ---
-title: 'Practical 1 — Airline Passengers'
+title: "Practical 1 — Airline Passengers"
 output:
   html_document:
     df_print: paged
+  pdf_document: default
 ---
 
 # Practical 1A
@@ -13,12 +14,17 @@ output:
 
 As first thing in this practical, we will import a time series data set from RStudio itself, and we will see how to create the same time series manually step-by-step, by using the "ts" function from the "tseries" package.
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
 ```{r}
 #1. Importing data files with RStudio & preliminary manipulations.
-
 # Import AirPassengers file from RStudio data
 
 library(readxl)
+library(tseries)
+
 data("AirPassengers")
 AP<- AirPassengers
 print("Time series from the AirPassenger dataset (TIME SERIES AP):")
@@ -130,7 +136,7 @@ c<-2*cos(2*pi*t2/50+0.6*pi)
 plot(t2, c, type="l", xlab="Time", ylab="Cosine signal (amplitude)")
 ```
 
-We defined the expression as a cosine signal with amplitude 2, period 50 time units, and a phase shift of 0.6π. With R it's extremely easy to plot this, and observe that it's a periodic time series with constant variance.
+We defined the expression as a cosine signal with amplitude 2, period 50 time units, and a phase shift of 0.6*pi. With R it's extremely easy to plot this, and observe that it's a periodic time series with constant variance.
 
 ## 4. Estimating a linear trend.
 
@@ -158,7 +164,7 @@ In plot **"Airline Passengers (logarithmic transformation) and fit linear approx
 
 Then, we represented the line as: ***trend = 0.01005\*t3 + 4.81367*** and computed the residuals:
 
--   **At each time point:** *residual = actual value − predicted trend value*
+-   **At each time point:** *residual = actual value - predicted trend value*
 
 Eventually we plot the residuals: this allows us to observe the following aspects, which are otherwise not explained by the trend: seasonality, short-term fluctuations, noise.
 
@@ -301,51 +307,151 @@ The *decompose* function allows to easily visualize what are the trend, seasonal
 
 ### Simulation of Time Series in R
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
-library(readxl)
-library(tseries)
-set.seed(1)
-```
+## 9. IID and Gaussian white noise
 
-## Load data
-
-```{r load-data}
-# AirPassengers is a built-in monthly `ts` object
-AP <- AirPassengers
-class(AP)
-summary(AP)
-head(AP)
-```
-
-## IID and Gaussian white noise examples
-
+Simulation of **Independent and Identically Distributed (IID) Gaussian White Noise**.
+First, we define the sample size; we want a sample of 1000 data points.
+Then, we generate n random values from a standard normal distribution. This is called Gaussian White Noise, meaning:
+- Values are independent -> no correlation between points
+- Values are identically distributed -> all come from the same normal distribution
 ```{r noise-examples}
+# Number of data points
 n <- 1000
+# Standard white noise
 z1 <- rnorm(n)
+```
+
+We can visualize the first 200 points as a line plot. As we can see, there's clearly a lack of trend. This is typical for white noise.
+We can also visualize the distribution with a histogram. It plots the frequency distribution of all 1000 points. Parameter probability = TRUE scales the histogram to density, so it can be compared with a probability density function.
+Function dnorm(x) computes the standard normal density at points x. Function 'lines' drawa the density as a red line on the histogram. This allows us to compare the sample with the true normal distribution, showing that the sample correctly approximated the theoretical normal distribution.
+
+```{r visualization noise-examples}
 plot(z1[1:200], type = "l", main = "Gaussian white noise (sample)")
 hist(z1, probability = TRUE, main = "Histogram of standard normal sample")
 x <- seq(-4, 4, length = 200)
 lines(x, dnorm(x), col = "red")
 ```
+### Sample definition variations
 
-### White-noise variations and diagnostics
+We can generate the sample without defining first n. Although the first approach is better, because it gives us more flexibility when programming.
 
-```{r noise-variations}
-# Gaussian white noise with non-zero mean and larger sd
-n <- 10000
-z3 <- rnorm(n, mean = 10, sd = 5)
-plot(z3[1:400], type = "l", main = "Gaussian white noise (mean=10, sd=5)")
-hist(z3, probability = TRUE, main = "Histogram (mean=10, sd=5)")
-lines(density(z3), col = "blue")
+```{r alternate-sample-generation}
+z1 <- rnorm(100)
+z1
+```
+### Gaussian White Noise with mean and standard deviation
 
-# Corrected: use consistent variable for sample size
-n_large <- 10000
-z <- rnorm(n_large, mean = 5, sd = 2)
-acf(z, main = "Correlogram of Gaussian white noise (mean=5, sd=2)")
+We can also define a specific mean (mu) and standard deviation (sigma). Visualization of the data with a line plot and a histogram.
+
+```{r noise-mu-sigma}
+# Gaussian white noise with mean 5 and std 2
+mu <- 5
+sigma <- 2
+# Sample of a normal random variable with mean 5 and std 2
+z2 <- rnorm(n, mean = mu, sd = sigma)
+plot(z2, type = "l", xlab = "Index", ylab = "Value",
+     main = "Gaussian White Noise Sample")
+hist(z1, freq = FALSE, main = "Histogram of Standard Normal Sample", xlab = "Value")
+```
+**What happens if we remove the parameter freq=F?** This parameter scales the histogram to a probability density. Removing the parameter plots fequencies instead of densities.
+
+``` {r}
+hist(z1, main = "Histogram of Standard Normal Sample", xlab = "Value")
 ```
 
-## Random walk (exercise 1b.2)
+Changing the sample size (n), mean (mu) ad standard deviation (sigma):
+
+```{r repeat-exercise, warning=FALSE, message=FALSE}
+# Define sets of parameters to explore
+n_values <- c(50, 500, 5000)          # sample sizes
+mu_values <- c(0, 5)                  # means
+sigma_values <- c(1, 3)               # standard deviations
+
+# Loop over all combinations
+for(n in n_values){
+  for(mu in mu_values){
+    for(sigma in sigma_values){
+      # Generate Gaussian white noise
+      z <- rnorm(n, mean = mu, sd = sigma)
+      
+      # Line plot of first 200 points (or full sample if small n)
+      plot_len <- min(200, n)
+      plot(z[1:plot_len], type="l", 
+           main=paste0("Line Plot: n=", n, ", mu=", mu, ", sigma=", sigma),
+           xlab="Index", ylab="Value")
+      
+      # Histogram with theoretical density
+      hist(z, probability=TRUE,
+           main=paste0("Histogram: n=", n, ", mu=", mu, ", sigma=", sigma),
+           xlab="Value")
+      x <- seq(min(z), max(z), length=200)
+      lines(x, dnorm(x, mean=mu, sd=sigma), col="red", lwd=2)
+    }
+  }
+}
+```
+
+**1. Effect of sample size (n):**
+- Small: histogram looks noisy, deviates from the red theoretical density line. Line plot shows more spikes, more irregular.
+- High: histogram matches more closely the theoretical normal distribution, line plot still sows random pattern.
+
+**2. Effect of mean (mu):**
+- Changing the mean shifts the center of the histogram and line plot. If mu -> 0, centered around 0. Overall shape and spread is the same.
+
+**3. Effects of Standard Deviation (sigma):**
+- Increasing sigma spreads the data: values more dispersed in the line plot, and histogram becomes wider and flatter.
+- Decreasing sigma concentrates the data around the mean: narrower and taller histogram.
+
+### Random seed
+
+The reproduce the same random sample every time, we can set a seed. By default R uses a random seed.
+
+```{r seed}
+m <- 1
+set.seed(m)
+w <- rnorm(1000)
+w
+```
+
+### Comparison of samples from the underlying population
+
+Overlay the theoretical normal density on the histogram:
+
+```{r}
+n <- 1000
+x <- seq(-4, 4, length = 1000)
+
+hist(rnorm(n), prob = TRUE, main = "Sample vs Theoretical Density", xlab = "Value")
+points(x, dnorm(x), type = "l", col = "red")
+```
+
+And autocorrelation function (ACF) for IID Gaussian noise:
+
+```{r}
+N <- 10000
+mu <- 5
+sigma <- 2
+z <- rnorm(N, mean = mu, sd = sigma)
+acf(z, main = "Correlogram of IID Gaussian Noise")
+```
+
+As we are working with IID noise, the ACF shows no significant correlation -> independence between observations.
+
+## 10. Random walk (exercise 1b.2)
+
+### Random walk trajectory
+
+The plot of rw <- cumsum(z_rw) shows a walk that fluctuates randomly over time. There is no stationary mean, a key property of random walk: variance increases with time.
+
+### Different seeds
+
+Different seeds produce different trajectories. Each trajectory is a random walk. Overall, shape looks similar showing that random walks are statistically consistent.
+With same the seed we obtain the same trajectory, this demostrates reproducibility.
+
+### Larger radom walk
+
+The iterative constructio of x_alt with 10000 points produces a longer and smoother path, but still shows random fluctuations.
+Range of values grows larger with more steps. Variance accumulates over time.
 
 ```{r random-walk}
 # simulate a simple random walk and inspect trajectory and differences
@@ -376,3 +482,10 @@ plot(x_alt, type = "l", main = "Random walk (iterative, n=10000)")
 # first difference of a random walk is (approximately) iid noise
 acf(diff(x_alt), main = "Correlogram of first difference of random walk")
 ```
+
+### First differences
+
+Taking the first difference of a random walk (diff(x_alt)) removes the drift and produces a series that approximates IID Gaussian noise.
+The correlogram shows no significant autocorrelation.
+
+A key property of random walks is that they are integrated of order 1 (I(1)). This means that the first differences gives a stationary series.
