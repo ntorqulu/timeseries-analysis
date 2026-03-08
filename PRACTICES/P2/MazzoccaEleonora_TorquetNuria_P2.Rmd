@@ -1,0 +1,226 @@
+---
+title: "Practical 2 — Testing IID and Gaussian Characters"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+---
+
+# Practical 2A
+
+## 1. Generate samples of lenght n of different IID noises using the following instructions
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+```{r}
+n <- 1000
+
+x1 <- rnorm(n, mean = 0, sd = 1)
+x2 <- runif(n, min = 0, max = 1)
+x3 <- rexp(n, rate = 2)
+x4 <- rchisq(n, df = 3)
+x5 <- rpois(n, lambda = 4)
+x6 <- rt(n, df = 5)
+
+plot(x1, type="l")
+hist(x1, 30)
+
+plot(x2, type="l")
+hist(x2, 30)
+```
+
+Observe what happens when you move the parameters. Try different distributions and parameters. What do you observe?
+
+### Normal distribution: change mean and sd
+
+```{r}
+n <- 1000
+
+x1 <- rnorm(n, mean = 0, sd = 1)
+x2 <- rnorm(n, mean = 5, sd = 1)
+x3 <- rnorm(n, mean = 0, sd = 3)
+
+par(mfrow=c(3,2))
+
+hist(x1, 30, main="Normal mean=0 sd=1")
+plot(x1, type="l")
+
+hist(x2, 30, main="Normal mean=5 sd=1")
+plot(x2, type="l")
+
+hist(x3, 30, main="Normal mean=0 sd=3")
+plot(x3, type="l")
+```
+
+We see that:
+- Increasing the mean shift the distribution
+- Increasing sd spreads the data
+
+### Expoential distribution: change rate
+
+```{r}
+x1 <- rexp(n, rate=0.5)
+x2 <- rexp(n, rate=3)
+x3 <- rexp(n, rate=10)
+
+par(mfrow=c(3,1))
+
+hist(x1, 30, main="rate=0.5")
+hist(x2, 30, main="rate=1")
+hist(x3, 30, main="rate=3")
+```
+
+We see that:
+- Higher rate implies that values are more concentrated around 0
+- Lower rate implies that values are more spread out, longer
+
+### Uniform distribution: change rate
+
+```{r}
+x1 <- runif(n, min=0, max=1)
+x2 <- runif(n, min=-5, max=5)
+x3 <- runif(n, min=10, max=20)
+
+par(mfrow=c(3,1))
+
+hist(x1, 30, main="0 to 1")
+hist(x2, 30, main="-5 to 5")
+hist(x3, 30, main="10 to 20")
+```
+
+We see that the distribution shape is the same, but the values are shifted and more spread out when we increase the range.
+
+### Chi-square: change the degrees of freedom
+
+```{r}
+x1 <- rchisq(n, df=1)
+x2 <- rchisq(n, df=5)
+x3 <- rchisq(n, df=15)
+
+par(mfrow=c(3,1))
+
+hist(x1, 30, main="df=1")
+hist(x2, 30, main="df=5")
+hist(x3, 30, main="df=15")
+```
+
+We see that:
+- Small df implies that values are more concentrated around 0, with a long tail
+- Large df implies that values are more spread out, with a shorter tail
+
+### Poisson distribution: change lambda
+
+```{r}
+x1 <- rpois(n, lambda=1)
+x2 <- rpois(n, lambda=5)
+x3 <- rpois(n, lambda=15)
+
+par(mfrow=c(3,1))
+
+hist(x1, 30, main="lambda=1")
+hist(x2, 30, main="lambda=5")
+hist(x3, 30, main="lambda=15")
+```
+
+We see that:
+- Small lambda implies that values are more concentrated around 0, with a long tail
+- Large lambda implies that values are more spread out, with a shorter tail
+
+### t distribution: change the degrees of freedom
+```{r}
+x1 <- rt(n, df=1)
+x2 <- rt(n, df=5)
+x3 <- rt(n, df=30)
+
+par(mfrow=c(3,1))
+
+hist(x1, 30, main="df=1")
+hist(x2, 30, main="df=5")
+hist(x3, 30, main="df=30")
+```
+
+We see that:
+- Small df implies that values are more concentrated around 0, with a long tail
+- Large df implies that values are more spread out, with a shorter tail, and when df is large the distribution looks more like a normal distribution
+
+Conclusion: moving the parameters change
+- location -> mean
+- spread -> variance/sd
+- skewness -> rate/df
+- tail -> rate/df
+
+Observe what happens when you move the parameters.
+For different distributions, do for example
+
+```{r}
+n <- 1000
+k <- 30
+x <- rexp(n, rate=2)
+plot(x, type="l")
+hist(x, k)
+```
+
+Here k denotes the number of classes for the histogram.
+Test with other distributions writing distributions in the help utility.
+
+To explore all distributions in R:
+```{r}
+help("Distributions")
+```
+
+or 
+```{r}
+?rexp
+?rnorm
+```
+
+
+## 2. Verify the IID character of any sample of the previous exercise. Use Ljung-Box test with the instruction
+```{r}
+Box.test (x, lag=h, type="Ljung")
+```
+
+For example:
+```{r}
+n <- 10000
+k <- 3
+x <- rt(n, df=k)
+plot(x, type="l")
+Box.test(x, lag=h, type="Ljung")
+```
+
+Interpretation:
+We see a large p-value, which means that we cannot reject the null hypothesis of independence, so we can conclude that the data are independent.
+The sample behaves like IID noise, as expected.
+
+We can try different lags, from h=1, to log(n):
+```{r}
+for(h in 1:log(n)){
+  print(Box.test(x, lag=h, type="Ljung"))
+}
+```
+We see that for all lags, we cannot reject the null hypothesis of independence, so we can conclude that the data are independent.
+p-values are all large, confirming that the data are independent.
+
+### Comparison with random walk
+
+A random walk is not IID because each value depends on the previous one. We can verify this by applying the Ljung-Box test to a random walk:
+```{r}
+n <- 10000
+rw <- cumsum(rnorm(n))
+plot(rw, type="l")
+Box.test(rw, lag=log(n), type="Ljung")
+```
+We see a small p-value, which means that we reject the null hypothesis of independence, so we can conclude that the data are not independent.
+The random walk does not behave like IID noise, as expected.
+
+We can try different lags for the random walk as well:
+```{r}
+for(h in 1:log(n)){
+  print(Box.test(rw, lag=h, type="Ljung"))
+}
+```
+We see that for all lags, we reject the null hypothesis of independence, so we can conclude that the data are not independent.
+p-values are all small, confirming that the data are not independent.
