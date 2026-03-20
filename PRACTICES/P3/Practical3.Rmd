@@ -1,0 +1,102 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+# Practical 3a AR(p) Models
+
+## 1. Simulating AR(p) models
+Generate an AR(2) model:
+
+```{r}
+
+n<-1000
+x<-arima.sim(list(ar = c(0.8897, -0.4858), sd = sqrt(0.1796)),n)
+plot(x,type="l")
+
+```
+
+Compute its autocorrelation function:
+
+```{r}
+acf(x)
+```
+
+Repeat the same exercise with different values of n, with a different number of parameters, and with different parameters of the AR(p).
+
+First I create a function to build the AR(p) model, so that I can easily vary n, p and the parameters phi:
+```{r}
+simulate_ar <- function(n, phi, sigma2 = 1) {
+  
+  x <- arima.sim(
+    model = list(ar = phi),
+    n = n,
+    sd = sqrt(sigma2)
+  )
+  
+  old_par <- par(no.readonly = TRUE)
+  on.exit(par(old_par))
+  
+  par(mfrow = c(1, 2), mar = c(4, 4, 3, 1))
+  
+  plot(
+    x,
+    type = "l",
+    main = paste0("AR(", length(phi), "), n = ", n),
+    xlab = "Time",
+    ylab = "Value"
+  )
+  
+  acf(x, main = "ACF")
+}
+```
+
+### REPEAT FOR DIFFERENT n
+```{r}
+n_values <- c(100, 500, 1000)
+
+for (n in n_values) {
+  simulate_ar(n, phi = c(0.8897, -0.4858), sigma2 = 0.1796)
+  dev.flush()
+}
+```
+
+### REPEAT FOR DIFFERENT p (AR orders)
+```{r}
+phi_list <- list(
+  c(0.7), #AR(1) 
+  c(0.8897, -0.4858), #AR(2)
+  c(0.6, -0.3, 0.2) #AR(3)
+)
+
+for (phi in phi_list) {
+  simulate_ar(1000, phi)
+}
+```
+
+### REPEAT FOR DIFFERENT n AND p COMBINED
+```{r}
+n_values <- c(100, 500, 1000)
+
+phi_list <- list(
+  c(0.7),
+  c(0.8897, -0.4858),
+  c(0.6, -0.3, 0.2)
+)
+
+for (n in n_values) {
+  for (phi in phi_list) {
+    
+    x <- arima.sim(list(ar = phi), n = n, sd = sqrt(0.1796))
+    
+    par(mfrow=c(1,2))
+    
+    plot(x, type="l",
+         main=paste("AR(",length(phi),")  n=",n,sep=""))
+    
+    acf(x, main="ACF")
+    
+  }
+}
+```
+
