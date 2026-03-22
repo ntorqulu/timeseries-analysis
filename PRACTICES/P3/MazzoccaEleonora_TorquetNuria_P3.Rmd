@@ -100,3 +100,135 @@ for (n in n_values) {
 }
 ```
 
+
+# Practical 3b Simulating and fitting ARMA models
+
+## 1. Model simulation
+```{r}
+# Simulate ARMA(1,0), ARMA(0,2) and ARMA(2,1) models
+SIM1 <- arima.sim(list(order=c(1, 0, 0), ar=0.7), n=1000)
+SIM2 <- arima.sim(list(order=c(0, 0, 2), ma=c(1.5, 0.75)), n=1000)
+SIM3 <- arima.sim(list(order=c(2, 0, 1), ar=c(0.3, 0.2), ma=0.3), n=1000)
+
+# Plot the simulated series
+par(mfrow=c(1,3))
+plot(SIM1, type="l", main="SIM1: AR(1)")
+plot(SIM2, type="l", main="SIM2: MA(2)")
+plot(SIM3, type="l", main="SIM3: ARMA(2,1)")
+```
+
+**Interpretation**: 
+- The AR(1) model (SIM1) shows an autocorrelation pattern, with values that tend to persist over time. Values depend on their immediate past, leading to smoother persistence.
+- The MA(2) model (SIM2) exhibits more "spiky" behavior, with short memory. 
+- The ARMA(2,1) model (SIM3) combines features of both AR and MA, showing some persistence but also more variability than the pure AR(1) model.
+
+## 2. Heuristic identification of the model. Auto-correlation and partial auto-correlation functions
+```{r}
+# Compute and plot the ACF and PACF for each simulated series
+par(mfrow=c(3,2))
+
+acf(SIM1, lag.max=30)
+pacf(SIM1, lag.max=30)
+
+acf(SIM2, lag.max=30)
+pacf(SIM2, lag.max=30)
+
+acf(SIM3, lag.max=30)
+pacf(SIM3, lag.max=30)
+```
+
+**Interpretation**:
+- For SIM1 (AR(1)), the ACF shows a gradual decay, while the PACF has a significant spike at lag 1 and then drops off.
+- For SIM2 (MA(2)), the ACF has significant spikes at lags 1 and 2, while the PACF shows a gradual decay.
+- For SIM3 (ARMA(2,1)), the ACF and PACF show a more complex pattern, with both decay and significant spikes, reflecting the combination of AR and MA components.
+
+## 3. Fitting a model
+
+```{r}
+# Fit ARMA models to the simulated data using maximum likelihood estimation
+S1 <- arima(SIM1, order=c(1,0,0), method="ML")
+S2 <- arima(SIM2, order=c(0,0,2), method="ML")
+S3 <- arima(SIM3, order=c(2,0,1), method="ML")
+
+# Display the fitted model summaries
+S1
+S2
+S3
+```
+
+**Interpretation**:
+- The fitted AR(1) model for SIM1 show an estimated AR coefficient close to 0. (0.7172), confirming the true model.
+- The fitted MA(2) model for SIM2 show estimated MA coefficients close to 1.5 (1.5178) and 0.75 (0.7475), confirming the true model.
+- The fitted ARMA(2,1) model for SIM3 does not show estimated coefficients close to the true values (0.3, 0.2 for AR and 0.3 for MA). Obtained estimates are (AR(1) = 1.2707, AR(2) = −0.4478 and MA(1) = −0.6156).
+
+## 4. Validation
+
+```{r}
+n <- length(SIM3)
+h <- log(n)
+
+Box.test(SIM3, lag=h, type="Ljung-Box")   # raw series
+y <- resid(S3)
+Box.test(y, lag=h, type="Ljung-Box")      # residuals
+```
+
+**Interpretation**:
+- The Ljung-Box test on the raw series (SIM3) yields a p-value of 2.2e-16, rejecting the null hypothesis of independence, which is expected since SIM3 is an ARMA(2,1) model with autocorrelation and is not white noise.
+- The Ljung-Box test on the residuals of the fitted model (S3) yields a p-value of 0.3582 which is greater than the common significance level of 0.05, failing to reject the null hypothesis of independence, indicating that the residuals behave like white noise and suggesting that the fitted ARMA(2,1) model adequately captures the autocorrelation structure of the data.
+
+### 4.1. Faster method
+```{r}
+# Diagnostic plots for the fitted ARMA(2,1) model
+tsdiag(S3, gof.lag=20)
+```
+
+**Interpretation**:
+- The `tsdiag` function provides diagnostic plots for the fitted ARMA model (S3). 
+- The first plot shows the standardized residuals, which should ideally resemble white noise. 
+- The second plot displays the ACF of the residuals, where we look for no significant autocorrelations.
+- The third plot shows the p-values of the Ljung-Box test for different lags, where we want to see p-values above 0.05, indicating that the residuals are not significantly autocorrelated. 
+- Overall, if the residuals appear random and the ACF shows no significant spikes, it suggests that the fitted ARMA(2,1) model is appropriate for the data.
+
+## 5. A complete example
+
+```{r}
+# Simulate an ARMA(2,1) model with n=10000 observations
+n <- 10000
+h <- log(n)
+
+# Simulate the ARMA(2,1) model
+s3 <- arima.sim(list(order=c(2,0,1), ar=c(0.3,0.2), ma=0.3), n)
+
+# Plot the simulated series and its ACF and PACF
+plot(s3, type="l")
+acf(s3)
+pacf(s3)
+
+# Fit the ARMA(2,1) model to the simulated data
+p3 <- arima(s3, order=c(2,0,1), method="ML")
+p3
+
+Box.test(s3, lag=h, type="Ljung-Box")   # raw series
+# Perform the Ljung-Box test on the residuals of the fitted model
+Box.test(p3$residuals, lag=h, type="Ljung-Box")
+tsdiag(p3, gof.lag=20)
+```
+
+**Interpretation**:
+- As said before, the Ljung-Box test on the raw series (s3) yields a p-value of 2.2e-16, rejecting the null hypothesis of independence
+- The Ljung-Box test on the residuals of the fitted model (p3) yields a p-value of 0.8576, which is greater than the common significance level of 0.05, failing to reject the null hypothesis of independence, indicating that the residuals behave like white noise and suggesting that the fitted ARMA(2,1) model adequately captures the autocorrelation structure of the data.
+
+
+## 6. Roots of Polynomials
+
+Given a polynomial 1+a_1 z + a_2 z^2 + ... + a_p z^p, we can ontain its roots using the `polyroot` function in R. 
+For an AR(2) model with parameters (0.8897, -0.4858), we can compute the roots as follows:
+
+```{r}
+# Coefficients of the polynomial
+a <- c(1, -0.8897, 0.4858)
+# Compute the roots
+roots <- polyroot(a)
+roots
+```
+
