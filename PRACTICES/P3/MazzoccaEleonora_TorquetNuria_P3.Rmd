@@ -659,4 +659,65 @@ sarima = SARIMAX(
 sarima_result = sarima.fit(disp=False)
 print(sarima_result.summary())
 ```
+Why (1, 0, 0)[365] seasonal part?
+- P=1 -> AR at lag 365: today correlates with same day last year
+- D=0 -> no seasonal differencing (d=1 already handles stationarity)
+- Q=0 -> no seasonal MA
 
+**Parameter interpretation:**
+```{python}
+phi1_s  = sarima_result.arparams[0]       # non-seasonal AR(1)
+theta1_s = sarima_result.maparams[0]      # non-seasonal MA(1)
+Phi1    = sarima_result.seasonalarparams[0]  # seasonal AR(1) at lag 365
+print(f"\nNon-seasonal  φ₁  = {phi1_s:.4f}")
+print(f"Non-seasonal  θ₁  = {theta1_s:.4f}")
+print(f"Seasonal      Φ₁  = {Phi1:.4f}")
+```
+
+- φ₁ = 0.7271 -> today's temperature change is 73% correlated with yesterday's
+- θ₁ = -0.8666 -> the model rapidly undoes yesterday's forecast mistake
+- Φ₁ = 0.0202 -> the seasonal correction from 365 days ago contributes only 2% weight... Practically zero.
+
+This means that the 7-day forecast from SARIMA will be almost identical to the plain ARIMA one, because the seasonal term contributes the most.
+
+**Model comparison:**
+```{python}
+print(f"ARIMA(1,1,1): AIC: {result.aic:.1f}, BIC: {result.bic:.1f}")
+print(f"SARIMA(1,1,1)(1,0,0)[365]: AIC: {sarima_result.aic:.1f}, BIC: {sarima_result.bic:.1f}")
+delta_aic = result.aic - sarima_result.aic
+```
+
+**Fitted vs actual last 30 days: ARIMA vs SARIMA**
+```{python}
+sarima_fitted = sarima_result.fittedvalues
+s_last30 = sarima_fitted.loc[last30_actual.index]
+s_residuals_30 = last30_actual - s_last30
+
+fig, ax = plt.subplots(figsize=(13, 5))
+
+ax.plot(last30_actual.index, last30_actual.values,
+        color="#3266ad", linewidth=2, marker="o",
+        markersize=4, label="Actual T_t")
+ax.plot(last30_fitted.index, last30_fitted.values,
+        color="#D85A30", linewidth=1.6, linestyle="--",
+        marker="s", markersize=3, label="ARIMA(1,1,1) fitted", alpha=0.8)
+ax.plot(s_last30.index, s_last30.values,
+        color="#639922", linewidth=1.6, linestyle="-.",
+        marker="^", markersize=4, label="SARIMA(1,1,1)(1,0,0)[365] fitted")
+
+ax.set_title("Actual vs Fitted last 30 days\nARIMA vs SARIMA")
+ax.set_ylabel("Temperature (deg)")
+ax.legend()
+ax.xaxis.set_major_formatter(mdates.DateFormatter("%d %b"))
+plt.xticks(rotation=25)
+plt.tight_layout()
+plt.show()
+
+# Metrics comparison
+rmse_s = np.sqrt(np.mean(s_residuals_30**2))
+mae_s  = np.mean(np.abs(s_residuals_30))
+print(f"\n Last-30-day comparison")
+print(f"ARIMA  RMSE: {rmse:.3f} degrees   MAE: {mae:.3f} degrees")
+print(f"SARIMA RMSE: {rmse_s:.3f} degrees   MAE: {mae_s:.3f} degrees")
+print(f"RMSE improvement: {rmse - rmse_s:.3f} degrees")
+```
