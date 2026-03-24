@@ -6,25 +6,31 @@ output: html_notebook
 # Practical 3a AR(p) Models
 
 ## 1. Simulating AR(p) models
+
 Generate an AR(2) model:
 
 ```{r}
 
 n<-1000
 x<-arima.sim(list(ar = c(0.8897, -0.4858), sd = sqrt(0.1796)),n)
-plot(x,type="l")
+plot(x,type="l",main="Simulated AR(2) Time Series", ylab="Value", xlab="Time")
 
 ```
+
+The simulated series shows a stochastic behavior with no clear trend or seasonality, as expected from an AR(p) process. The values fluctuate around a constant mean, suggesting stationarity.
 
 Compute its autocorrelation function:
 
 ```{r}
-acf(x)
+acf(x, main="ACF of Simulated AR(2)")
 ```
 
-Repeat the same exercise with different values of n, with a different number of parameters, and with different parameters of the AR(p).
+The autocorrelation function shows a gradual decay (kind of exponential), which is characteristic of AR processes. This confirms that the data was generated from an AR model.
+
+### Repeat for different n, number of parameters and different p of the AR(p).
 
 First I create a function to build the AR(p) model, so that I can easily vary n, p and the parameters phi:
+
 ```{r}
 simulate_ar <- function(n, phi, sigma2 = 1) {
   
@@ -52,6 +58,7 @@ simulate_ar <- function(n, phi, sigma2 = 1) {
 ```
 
 ### REPEAT FOR DIFFERENT n
+
 ```{r}
 n_values <- c(100, 500, 1000)
 
@@ -61,7 +68,16 @@ for (n in n_values) {
 }
 ```
 
-### REPEAT FOR DIFFERENT p (AR orders)
+*Observations:*
+
+-   Smaller n (100): the simulated series appears more irregular and the ACF is noisier. This makes the underlying auto-regressive structure less clear, because of the visual impact of the random fluctuations.
+
+-   Larger n (e.g. 1000): the behavior of the series becomes more representative of the theoretical AR model. The expected decay pattern of the ACF becomes clearer and smoother (after the decay, the values tend to be around 0, while for n=100 the values were still oscillating between -0.2 and 0.2 --\> dashed blue lines).
+
+Overall, increasing n does not change the true model, but it improves the visibility of its properties.
+
+### REPEAT FOR DIFFERENT AR orders
+
 ```{r}
 phi_list <- list(
   c(0.7), #AR(1) 
@@ -74,29 +90,325 @@ for (phi in phi_list) {
 }
 ```
 
-### REPEAT FOR DIFFERENT n AND p COMBINED
-```{r}
-n_values <- c(100, 500, 1000)
+Changing the order *p* changes how many past observations influence the current value. As p increases, the dependence structure becomes more complex and may persist over more lags.
 
-phi_list <- list(
-  c(0.7),
+-   **AR(1):** each observation depends only on the immediately previous value. The ACF has a smooth decay.
+
+-   **AR(2)** and **AR(3):** the dependence involves more than one lag, so the series show richer dynamics. The ACF still decays gradually, but less smoothly than the AR(1) case and with an oscillatory behavior (resembling damped oscillations).
+
+Overall, increasing the order of the model *p* increases the complexity of temporal dependence. This can be observed **both in the time series plot** (signals are reacher as *p* increases) **and in the ACF**, which shows less smooth decay and more complex shapes due to the combined effect of multiple lagged terms.
+
+### REPEAT FOR DIFFERENT p 
+
+I choose to fix n = 1000 and p=2, so that I can observe how the time series and ACF change as I vary the parameters.
+
+```{r}
+set.seed(123)
+n <- 500
+
+phi_list_values <- list(
+  c(0.3, 0.2),
   c(0.8897, -0.4858),
-  c(0.6, -0.3, 0.2)
+  c(1.2, -0.7)
 )
 
+titles_values <- c(
+  "AR(2): phi = (0.3, 0.2)",
+  "AR(2): phi = (0.8897, -0.4858)",
+  "AR(2): phi = (1.2, -0.7)"
+)
+
+par(mfrow = c(3, 2), mar = c(4, 4, 3, 1))
+
+for (i in 1:length(phi_list_values)) {
+  
+  x <- arima.sim(list(ar = phi_list_values[[i]]), n = n, sd = sqrt(0.1796))
+  
+  plot(x, type = "l",
+       main = paste(titles_values[i], "- Series"),
+       xlab = "Time", ylab = "Value")
+  
+  acf(x,
+      main = paste(titles_values[i], "- ACF"))
+}
+
+par(mfrow = c(1, 1))
+```
+
+**Observations:**
+
+The three simulated AR(2) series show:
+
+-   similar overall behavior –\> in fact we can observe stationary fluctuations around a constant mean
+
+-   their dependence structure changes depending on the parameter values
+
+    -   phi = (0.3, 0.2) –\> the series looks "random" and the ACF goes to zero smoothly.\
+        This is the case with small coefficients, so the dependence between observations is weak.
+
+    -   phi = (0.8897, -0.4858) –\> the series looks slightly smoother than previous, the decay is a bit more oscillatory. The ACF stabilizes around 0 in longer time than phi = (0.3, 0.2) - which is in accordance with larger coefficients leading to stronger persistence.
+
+    -   phi = (1.2, -0.7) –\> the series looks more structured and less random, and the ACF has stronger oscillations. This could be indicative of alternating correlations across lags - which is compatible with such large coefficients.
+
+Overall, increasing the magnitude of the coefficients increases the persistence of the process. This also leads to oscillatory behavior in the ACF, which indicates a more complex temporal dependence.
+
+## 2. Fitting AR(p) models
+
+With the following commands, we will obtain an estimation of the AR(2) parameters and the intercept. We will assess the quality of the fit, and try with larger values of n.
+
+```{r}
+n<-1000
+x<-arima.sim(list(ar = c(0.8897, -0.4858), sd = sqrt(0.1796)), n)
+plot(x,type="l",main="Simulated AR(2) series",xlab="Time",ylab="Value")
+s1<-arima(x, order=c(2,0,0), method="ML")
+s1
+```
+
+**Observations:**
+
+-   As it happened before, the generated time series fluctuates around a constant mean with no visible trend or seasonality, which is consistent with a stationary AR(2) process.
+
+-   **Fitted values:** these values estimate the autoregressive coefficients from the simulated data and they resulted to be very close to the true values
+
+    -   true coefficients: ϕ1=0.8897 and ϕ2=−0.4858
+
+    -   estimated coefficients: ϕ1=0.8665 and ϕ2=−0.4481
+
+        So the model fits the data well.
+
+### Try with larger values of n
+
+```{r}
+n_values <- c(100, 500, 1000, 5000)
+
+par(mfrow = c(2,2), mar = c(4,4,3,1))
+
 for (n in n_values) {
-  for (phi in phi_list) {
-    
-    x <- arima.sim(list(ar = phi), n = n, sd = sqrt(0.1796))
-    
-    par(mfrow=c(1,2))
-    
-    plot(x, type="l",
-         main=paste("AR(",length(phi),")  n=",n,sep=""))
-    
-    acf(x, main="ACF")
-    
-  }
+  x <- arima.sim(list(ar = c(0.8897, -0.4858), sd = sqrt(0.1796)), n = n)
+  
+  plot(x, type = "l",
+       main = paste("Simulated AR(2), n =", n),
+       xlab = "Time",
+       ylab = "Value")
+  
+  s1 <- arima(x, order = c(2,0,0), method = "ML")
+  
+  cat("\n========================\n")
+  cat("n =", n, "\n")
+  print(s1)
+}
+
+par(mfrow = c(1,1))
+```
+
+**Observations:**
+
+From the results above, we can notice that changing *n* brings to really different performance of the estimating model. As the number of samples *n* increases, the estimated AR coefficients gets closer to the real coefficients. In fact, the standard error (s.e.) for ar1, ar2 and intercept decreases. Moreover, as *n* increases, also the performance indicator *aic* increases. So we can conclude that if the model has more data points, it will be easier to be more accurate in estimating the autoregressive coefficients.
+
+### Do it several times simulating new series with different parameters
+
+```{r}
+
+n <- 1000
+
+phi_list <- list(
+  c(0.5, 0.2),
+  c(0.8897, -0.4858),
+  c(1.2, -0.7)
+)
+
+par(mfrow = c(3,1), mar = c(4,4,3,1))
+
+for (phi in phi_list) {
+  x <- arima.sim(list(ar = phi, sd = sqrt(0.1796)), n = n)
+  
+  plot(x, type = "l",
+       main = paste("Simulated AR(2): phi = (", paste(phi, collapse = ", "), ")", sep = ""),
+       xlab = "Time",
+       ylab = "Value")
+}
+
+par(mfrow = c(1,1))
+
+for (phi in phi_list) {
+  x <- arima.sim(list(ar = phi, sd = sqrt(0.1796)), n = n)
+  s1 <- arima(x, order = c(2,0,0), method = "ML")
+  
+  cat("\n========================\n")
+  cat("True phi =", paste(phi, collapse = ", "), "\n")
+  print(s1)
 }
 ```
 
+**Observations:**
+
+In this case as well, with different simulated time series, the fitting model performs well and estimates the autoregression coefficients which are very close to the true coefficients (all the standard errors on ar1, ar2, intercept are very small (around 0.01-0.06).
+
+This shows that the fitted model adapts to different structures: in all these cases it is able to recover the main autoregressive structure.
+
+### Try alternative method
+
+Try instead s2\<- ar(x, order.max=2, method=”mle”).
+
+```{r}
+n <- 1000
+x <- arima.sim(list(ar = c(0.8897, -0.4858), sd = sqrt(0.1796)), n = n)
+
+s1 <- arima(x, order = c(2,0,0), method = "ML")
+s2 <- ar(x, order.max = 2, method = "mle")
+
+s1
+s2
+```
+
+**Observations:**
+
+The two method provide the same autoregressive coefficients and sigma\^2.
+
+The first method (s1) might be more helpful as it shows explicitly more details, e.g. the standard error and the intercept.
+
+### Try order.max=3
+
+```{r}
+s3 <- ar(x, order.max = 3, method = "mle")
+s3
+```
+
+In this case the fitting model tries AR up to the 3rd order: AR(1), AR(2) and AR(3) and compares them using *aic* internally, to then choose the best one.
+
+As the result shows, the best model chosen is still AR(2) and so it returned the same coefficients as before.
+
+This makes sense because the time series that we are fitting, x, was generated from AR(2). So the model doesn't need to represent it with AR(3), indicating that adding an extra lag does not improve the model fit.
+
+Overall, even when a higher maximum order is allowed, the model selection procedure correctly identifies AR(2) as the best model.
+
+## 3. Validation
+
+We will now experiment with the Box.test functionality.
+
+First we create an AR(2) model with phi = (0.8897, -0.4858).
+
+```{r}
+n<-1000
+x<-arima.sim(list(ar = c(0.8897, -0.4858), sd = sqrt(0.1796)), n)
+plot(x,type="l",main="Simulated AR(2) series, phi = (0.8897, -0.4858)",xlab="Time",ylab="Value")
+s<-arima(x, order=c(2,0,0), method="ML")
+s
+```
+
+```{r}
+y<-resid(s)
+
+# Residuals plot + ACF together
+par(mfrow = c(3,1))
+plot(x,type="l",main="Simulated AR(2) series, phi = (0.8897, -0.4858)",xlab="Time",ylab="Value")
+plot(y,type="l",main = "Residuals", xlab = "Time", ylab = "Residuals")
+acf(y, main = "ACF of Residuals")
+par(mfrow = c(1,1))
+
+# Ljung-Box tests
+h<-floor(log(n))
+Box.test(x,lag=h, type=c("Ljung-Box"))
+Box.test(y,lag=h,type=c("Ljung-Box"))
+```
+
+**Observations:**
+
+The residuals (y) fluctuate randomly around zero with no visible trend or structure, which suggests that the model has captured the main dynamics of the series.
+
+Looking at the ACF, we don't notice significant spikes - indicating that there is no remaining autocorrelations. This suggests that the residuals behave like white noise.
+
+This is also confirmed by the result of the Box-Ljung test:
+
+-   **p-value of x** \<0.05 –\> the Ljung-Box test rejects the null hypothesis of independence, confirming that the series is not white noise and contains temporal dependence.
+
+-   **p-value of y** \>0.05 –\> the Ljung-Box test does not reject the null hypothesis, indicating that the residuals are consistent with white noise. This validates the fitted AR(2) model.
+
+So eventually, since the residuals behave as white noise, we conclude that the AR(2) model provides an adequate fit to the data.
+
+Alternative method:
+
+```{r}
+
+h<-floor(log(n))
+tsdiag(s,gof.lag=h)
+```
+
+The resulting plots confirm that the residuals behave as white noise. In particular, the p-values of the Ljung-Box test are generally above 0.05, indicating no significant autocorrelation remains.
+
+**Conclusions:**
+
+The residual analysis shows that the fitted AR(2) model captures well the structure of the series. The residuals derived are randomly distributed, and their autocorrelation function shows no significant values. Furthermore, the Ljung-Box test rejects independence for the original series but not for the residuals. This confirms that the residuals behave as white noise and that the model provides a good fit.
+
+## 4. Selection of the best AR(p) model
+
+The following block selects the AR model, AR(1), AR(2) or AR(3), that best fits the data x, using the
+Akaike method, which we will see this in next lectures. The solution should be an AR(2).
+
+```{r}
+n<-1000
+x<-arima.sim(list(ar = c(0.8897, -0.4858), sd = sqrt(0.1796)), n)
+plot(x,type="l",main="Simulated AR(2) series, phi = (0.8897, -0.4858)",xlab="Time",ylab="Value")
+ss1<-ar(x, order.max=3, method="mle")
+ss1
+```
+
+As expected, even with the Akaike method the AR(2) is selected as best model to fit x.
+
+## 5. A complete analysis with real data
+
+We are going to use a dataset of the yearly level of Lake Huron from years 1875 to 1972.
+
+The exercise suggests to create the timseries and plot it, along with its lag plots.
+
+These are plots of (x(i-1), x(i)), then (x(i-2), x(i)), and so on. We are asked to notice that the linear trend disappears as we increase the lag.
+
+```{r}
+x<-LakeHuron
+x
+
+x <- LakeHuron
+
+plot(x,main = "Lake Huron Water Levels (1875–1972)",xlab = "Year",ylab = "Depth")
+
+lag.plot (x, lag=4, do.lines=F)
+```
+
+The time series represents yearly water levels of Lake Huron. The series appears relatively stable, although a slight downward trend can be observed over time, suggesting possible non-stationarity.
+
+The **lag plots** show the relationship between the series and its past values. For small lags, there is a clear linear relationship, indicating strong dependence between consecutive observations. As the lag increases, the relationship becomes more dispersed, suggesting decreasing dependence.
+
+```{r}
+acf(x)
+```
+
+The autocorrelation function shows a slow decay, indicating strong persistence in the series. This behavior suggests that the data may follow an autoregressive process and may not be purely random.
+
+Now fit a model AR(1) to x, using Yule-Walker & Maximum Likelihood Estimation methods to estimate the parameters:
+
+```{r}
+
+s1<-ar(x,order.max=1, method="yw")
+s1
+
+s2<-ar(x,order.max=1, method="mle")
+s2
+```
+
+Fitting an AR(1) model using both Yule-Walker and Maximum Likelihood methods gives similar coefficient estimates. This indicates that both methods provide consistent results for this dataset.
+
+### Fit a generic AR(p) model
+
+```{r}
+s3 <- ar(x, method = "mle")
+s3
+
+s4 <- ar(x, method = "yw")
+s4
+```
+
+Also in this case we can notice that both MLE and YW give similar coefficient estimates. And they both select p=2, so they return AR(2) models. This indicates robustness in the model selection and estimation process.
+
+**Conclusions:**
+
+The analysis suggests that the Lake Huron time series exhibits autoregressive behavior, with an AR(2) model providing a better fit than AR(1). This is indeed coherent with what we saw in the ACG and lag plots: they both suggested that the data was not purely random but acutally followed an autoregressive process.
