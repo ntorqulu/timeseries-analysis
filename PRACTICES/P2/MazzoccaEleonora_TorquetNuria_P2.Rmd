@@ -2,10 +2,9 @@
 title: "Practical 2 — Testing IID and Gaussian Characters"
 authors: Eleonora Mazzocca, Nùria Torquet
 output:
-  pdf_document:
-    latex_engine: xelatex
   html_document:
     df_print: paged
+  pdf_document: default
 editor_options: 
   markdown: 
     wrap: 72
@@ -17,7 +16,6 @@ editor_options:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
-library(forecast)
 ```
 
 ```{r}
@@ -186,7 +184,6 @@ or
 ## 2. Verify the IID character of any sample of the previous exercise. Use Ljung-Box test with the instruction
 
 ```{r}
-h <- 1
 Box.test (x, lag=h, type="Ljung")
 ```
 
@@ -197,7 +194,7 @@ n <- 10000
 k <- 3
 x <- rt(n, df=k)
 plot(x, type="l")
-Box.test(x, lag=1, type="Ljung")
+Box.test(x, lag=h, type="Ljung")
 ```
 
 Interpretation: We see a large p-value, which means that we cannot
@@ -235,7 +232,6 @@ The random walk does not behave like IID noise, as expected.
 We can try different lags for the random walk as well:
 
 ```{r}
-rw <- cumsum(rnorm(n))
 for(h in 1:log(n)){
   print(Box.test(rw, lag=h, type="Ljung"))
 }
@@ -1028,7 +1024,7 @@ We will now try Holt-Winters on more data sets:
 
 -   Monthly atmospheric CO₂ concentration
 -   UK gas consumption
--   Monthly temperature - Nottingham
+-   Monthly temperature – Nottingham
 
 ```{r}
 # Monthly atmospheric CO₂ concentration
@@ -1075,14 +1071,14 @@ forecast continues the same structural behaviour: the predicted values
 show a continuation of the increasing trend together with seasonal
 oscillations whose amplitude keeps growing over time.
 
--   **Monthly temperature - Nottingham**
+-   **Monthly temperature – Nottingham**
 
 ```{r}
-# Monthly temperature - Nottingham
+# Monthly temperature – Nottingham
 x <- nottem
 y <- HoltWinters(x)
 
-plot(x, main = "Monthly temperature - Nottingham")
+plot(x, main = "Monthly temperature – Nottingham")
 y$alpha
 y$beta
 y$gamma
@@ -1091,7 +1087,7 @@ z<-predict(y,n.ahead=4*12)
 plot(y,z,lty=1:2, main = "Holt-Winters filtering and prediction")
 ```
 
-The *Monthly temperature - Nottingham* series shows a clear seasonal
+The *Monthly temperature – Nottingham* series shows a clear seasonal
 pattern but not a long-term trend (the fluctuations are around a
 relatively stable level). The Holt–Winters filtering captures this
 behavior well, and in fact the fitted curve follows the seasonal pattern
