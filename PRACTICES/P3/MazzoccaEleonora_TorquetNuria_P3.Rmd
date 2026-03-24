@@ -1,0 +1,723 @@
+---
+title: "Practical 3 - AR(p) Models"
+authors: Eleonora Mazzocca, Nùria Torquet
+output:
+  pdf_document:
+    latex_engine: xelatex
+  html_document:
+    df_print: paged
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+# Practical 3a AR(p) Models
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+library(reticulate)
+py_install("yfinance")
+py_install("statsmodels")
+py_install("matplotlib")
+py_install("meteostat")
+```
+
+## 1. Simulating AR(p) models
+Generate an AR(2) model:
+
+```{r}
+
+n<-1000
+x<-arima.sim(list(ar = c(0.8897, -0.4858), sd = sqrt(0.1796)),n)
+plot(x,type="l")
+
+```
+
+Compute its autocorrelation function:
+
+```{r}
+acf(x)
+```
+
+Repeat the same exercise with different values of n, with a different number of parameters, and with different parameters of the AR(p).
+
+First I create a function to build the AR(p) model, so that I can easily vary n, p and the parameters phi:
+```{r}
+simulate_ar <- function(n, phi, sigma2 = 1) {
+  
+  x <- arima.sim(
+    model = list(ar = phi),
+    n = n,
+    sd = sqrt(sigma2)
+  )
+  
+  old_par <- par(no.readonly = TRUE)
+  on.exit(par(old_par))
+  
+  par(mfrow = c(1, 2), mar = c(4, 4, 3, 1))
+  
+  plot(
+    x,
+    type = "l",
+    main = paste0("AR(", length(phi), "), n = ", n),
+    xlab = "Time",
+    ylab = "Value"
+  )
+  
+  acf(x, main = "ACF")
+}
+```
+
+### REPEAT FOR DIFFERENT n
+```{r}
+n_values <- c(100, 500, 1000)
+
+for (n in n_values) {
+  simulate_ar(n, phi = c(0.8897, -0.4858), sigma2 = 0.1796)
+  dev.flush()
+}
+```
+
+### REPEAT FOR DIFFERENT p (AR orders)
+```{r}
+phi_list <- list(
+  c(0.7), #AR(1) 
+  c(0.8897, -0.4858), #AR(2)
+  c(0.6, -0.3, 0.2) #AR(3)
+)
+
+for (phi in phi_list) {
+  simulate_ar(1000, phi)
+}
+```
+
+### REPEAT FOR DIFFERENT n AND p COMBINED
+```{r}
+n_values <- c(100, 500, 1000)
+
+phi_list <- list(
+  c(0.7),
+  c(0.8897, -0.4858),
+  c(0.6, -0.3, 0.2)
+)
+
+for (n in n_values) {
+  for (phi in phi_list) {
+    
+    x <- arima.sim(list(ar = phi), n = n, sd = sqrt(0.1796))
+    
+    par(mfrow=c(1,2))
+    
+    plot(x, type="l",
+         main=paste("AR(",length(phi),")  n=",n,sep=""))
+    
+    acf(x, main="ACF")
+    
+  }
+}
+```
+
+
+# Practical 3b Simulating and fitting ARMA models
+
+## 1. Model simulation
+```{r}
+# Simulate ARMA(1,0), ARMA(0,2) and ARMA(2,1) models
+SIM1 <- arima.sim(list(order=c(1, 0, 0), ar=0.7), n=1000)
+SIM2 <- arima.sim(list(order=c(0, 0, 2), ma=c(1.5, 0.75)), n=1000)
+SIM3 <- arima.sim(list(order=c(2, 0, 1), ar=c(0.3, 0.2), ma=0.3), n=1000)
+
+# Plot the simulated series
+par(mfrow=c(1,3))
+plot(SIM1, type="l", main="SIM1: AR(1)")
+plot(SIM2, type="l", main="SIM2: MA(2)")
+plot(SIM3, type="l", main="SIM3: ARMA(2,1)")
+```
+
+**Interpretation**: 
+- The AR(1) model (SIM1) shows an autocorrelation pattern, with values that tend to persist over time. Values depend on their immediate past, leading to smoother persistence.
+- The MA(2) model (SIM2) exhibits more "spiky" behavior, with short memory. 
+- The ARMA(2,1) model (SIM3) combines features of both AR and MA, showing some persistence but also more variability than the pure AR(1) model.
+
+## 2. Heuristic identification of the model. Auto-correlation and partial auto-correlation functions
+```{r}
+# Compute and plot the ACF and PACF for each simulated series
+par(mfrow=c(3,2))
+
+acf(SIM1, lag.max=30)
+pacf(SIM1, lag.max=30)
+
+acf(SIM2, lag.max=30)
+pacf(SIM2, lag.max=30)
+
+acf(SIM3, lag.max=30)
+pacf(SIM3, lag.max=30)
+```
+
+**Interpretation**:
+- For SIM1 (AR(1)), the ACF shows a gradual decay, while the PACF has a significant spike at lag 1 and then drops off.
+- For SIM2 (MA(2)), the ACF has significant spikes at lags 1 and 2, while the PACF shows a gradual decay.
+- For SIM3 (ARMA(2,1)), the ACF and PACF show a more complex pattern, with both decay and significant spikes, reflecting the combination of AR and MA components.
+
+## 3. Fitting a model
+
+```{r}
+# Fit ARMA models to the simulated data using maximum likelihood estimation
+S1 <- arima(SIM1, order=c(1,0,0), method="ML")
+S2 <- arima(SIM2, order=c(0,0,2), method="ML")
+S3 <- arima(SIM3, order=c(2,0,1), method="ML")
+
+# Display the fitted model summaries
+S1
+S2
+S3
+```
+
+**Interpretation**:
+- The fitted AR(1) model for SIM1 show an estimated AR coefficient close to 0. (0.7172), confirming the true model.
+- The fitted MA(2) model for SIM2 show estimated MA coefficients close to 1.5 (1.5178) and 0.75 (0.7475), confirming the true model.
+- The fitted ARMA(2,1) model for SIM3 does not show estimated coefficients close to the true values (0.3, 0.2 for AR and 0.3 for MA). Obtained estimates are (AR(1) = 1.2707, AR(2) = −0.4478 and MA(1) = −0.6156).
+
+## 4. Validation
+
+```{r}
+n <- length(SIM3)
+h <- log(n)
+
+Box.test(SIM3, lag=h, type="Ljung-Box")   # raw series
+y <- resid(S3)
+Box.test(y, lag=h, type="Ljung-Box")      # residuals
+```
+
+**Interpretation**:
+- The Ljung-Box test on the raw series (SIM3) yields a p-value of 2.2e-16, rejecting the null hypothesis of independence, which is expected since SIM3 is an ARMA(2,1) model with autocorrelation and is not white noise.
+- The Ljung-Box test on the residuals of the fitted model (S3) yields a p-value of 0.3582 which is greater than the common significance level of 0.05, failing to reject the null hypothesis of independence, indicating that the residuals behave like white noise and suggesting that the fitted ARMA(2,1) model adequately captures the autocorrelation structure of the data.
+
+### 4.1. Faster method
+```{r}
+# Diagnostic plots for the fitted ARMA(2,1) model
+tsdiag(S3, gof.lag=20)
+```
+
+**Interpretation**:
+- The `tsdiag` function provides diagnostic plots for the fitted ARMA model (S3). 
+- The first plot shows the standardized residuals, which should ideally resemble white noise. 
+- The second plot displays the ACF of the residuals, where we look for no significant autocorrelations.
+- The third plot shows the p-values of the Ljung-Box test for different lags, where we want to see p-values above 0.05, indicating that the residuals are not significantly autocorrelated. 
+- Overall, if the residuals appear random and the ACF shows no significant spikes, it suggests that the fitted ARMA(2,1) model is appropriate for the data.
+
+## 5. A complete example
+
+```{r}
+# Simulate an ARMA(2,1) model with n=10000 observations
+n <- 10000
+h <- log(n)
+
+# Simulate the ARMA(2,1) model
+s3 <- arima.sim(list(order=c(2,0,1), ar=c(0.3,0.2), ma=0.3), n)
+
+# Plot the simulated series and its ACF and PACF
+plot(s3, type="l")
+acf(s3)
+pacf(s3)
+
+# Fit the ARMA(2,1) model to the simulated data
+p3 <- arima(s3, order=c(2,0,1), method="ML")
+p3
+
+Box.test(s3, lag=h, type="Ljung-Box")   # raw series
+# Perform the Ljung-Box test on the residuals of the fitted model
+Box.test(p3$residuals, lag=h, type="Ljung-Box")
+tsdiag(p3, gof.lag=20)
+```
+
+**Interpretation**:
+- As said before, the Ljung-Box test on the raw series (s3) yields a p-value of 2.2e-16, rejecting the null hypothesis of independence
+- The Ljung-Box test on the residuals of the fitted model (p3) yields a p-value of 0.8576, which is greater than the common significance level of 0.05, failing to reject the null hypothesis of independence, indicating that the residuals behave like white noise and suggesting that the fitted ARMA(2,1) model adequately captures the autocorrelation structure of the data.
+
+
+## 6. Roots of Polynomials
+
+Given a polynomial 1+a_1 z + a_2 z^2 + ... + a_p z^p, we can ontain its roots using the `polyroot` function in R. 
+For an AR(2) model with parameters (0.8897, -0.4858), we can compute the roots as follows:
+
+```{r}
+# Coefficients of the polynomial
+a <- c(1, -0.8897, 0.4858)
+# Compute the roots
+roots <- polyroot(a)
+roots
+```
+
+## 7. Download the daily closing prices for Siemens Energy and store them to a SE.csv file
+```{python}
+# import libraries
+import yfinance as yf
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
+import requests
+from statsmodels.tsa.stattools import adfuller
+from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
+from statsmodels.tsa.arima.model import ARIMA
+from statsmodels.stats.diagnostic import acorr_ljungbox
+from statsmodels.tsa.statespace.sarimax import SARIMAX
+from datetime import datetime
+import warnings
+warnings.filterwarnings("ignore")
+```
+
+### 7.1. Download the data
+```{python}
+ticker = "ENR.DE"  # Siemens Energy ticker on XETRA
+data = yf.download(ticker, start="2020-01-01", end="2025-12-31")
+data.to_csv("SE.csv")  # save to CSV
+print(data.head())
+```
+
+### 7.2. Load the CSV and compute log returns
+```{python}
+#  yfinance has extra row at the beginning, skip it with header=1
+se_data = pd.read_csv("SE.csv", header=1, index_col=0, parse_dates=True)
+se_data.columns = se_data.columns.str.strip()
+print(se_data.columns)
+
+# Compute daily log returns
+# log_return[†] = log(Close_t) - log(Close_{t-1})
+returns = np.log(se_data['ENR.DE.3']).diff().dropna()
+
+# Plot
+returns.plot(title="Siemens Energy Daily Log Returns", figsize=(10,6))
+plt.show()
+```
+
+### 7.3. Check stationarity with ADF test
+```{python}
+adf_result = adfuller(returns)
+print(f"ADF Statistic: {adf_result[0]}")
+print(f"p-value: {adf_result[1]}")
+print("Critical Values:", adf_result[4])
+```
+
+**Interpretation**:
+- The log returns are stationary because the ADF test statistic is less than the critical value and the p-value is less than 0.05
+- ADF Statistic: -40.30339446788923
+- p-value: 0.0
+- We can reject the null hypothesis of a unit root, confirming that the log returns are stationary.
+
+### 7.4. Plot ACF and PACF
+```{python}
+# Plot ACF
+plt.figure(figsize=(12,5))
+plot_acf(returns, lags=50, zero=False)
+plt.title("ACF of Siemens Energy Log Returns")
+plt.show()
+
+# Plot PACF
+plt.figure(figsize=(12,5))
+plot_pacf(returns, lags=50, zero=False, method='ywm')  # 'ywm' handles large series better
+plt.title("PACF of Siemens Energy Log Returns")
+plt.show()
+```
+
+### 7.5. Fit an ARMA(1, 1) and ARMA(2, 1) model based on ACF and PACF
+```{python}
+# ARMA(p, q) is ARIMA(p, 0, q) in statsmodels
+model_11 = ARIMA(returns, order=(1, 0, 1)) # p=1, d=0, q=1
+fit_11 = model_11.fit()
+print(fit_11.summary())
+
+model_21 = ARIMA(returns, order=(2, 0, 1)) # p=2, d=0, q=1
+fit_21 = model_21.fit()
+print(fit_21.summary())
+```
+
+### Interpret the AR and MA coefficients. What do they say about short-term dependence in returns?
+Let's first interpret the ARMA(1, 1) coefficients. From the results:
+
+- AR(1) = -0.4588
+- MA(1) = 0.3663
+- σ² aprox 0.001
+
+The **autoregressive term (AR)** measures how much yesterday's return influences today's return. Negative value implies mean-reversion. If yesterday's return was positive, today's return is slightly pulled downward and if yesterday's return was negative, today's return tends to move upwards.
+This indicates that returns slightly reverse previous day's movements.
+The **moving average (MA)** term measures how much yesterday's stock (unexpected return) affects today's return. Positive value implies shock persistence. If yesterday unexpected return was positive, todayps return will slightly increase and viceversa.
+This indicates that short-term surprises in returns have a smal effect on the next day.
+
+**Conclusion:**
+- Negative AR(1) -> returns tend to bounce back
+- Positive MA(1) -> short-lived stock persistence, sudden movements carry over to the next day.
+- Daily log returns are weakly autocorrelated. Past values and past stocks have a small but measurable impact.
+
+For ARMA(2, 1) coefficients:
+
+- AR(1) = -0.8779 (very large standard error, not significant)
+- AR(2) = -0.0755 (very large standard error, not significant)
+- MA(1) = 0.7802 (very large standard error, not significant)
+- σ² aprox 0.001
+
+The **autoregressive terms (AR1, AR2)** are not statistically significant, they have huge standard errors, so estimates are unreliable. Negative AR1 hints at mean-reversion, but due to insignificance we cannot confidently say returns show short-term dependence based on just AR terms. AR2 is close to zero -> little effect of returns from two years ago.
+The **moving average (MA1)** term is positive, but again not significant. This suggest that past stocks may have some short-lived effect, but we cannot rely on the estimate.
+
+**Conclusion:**
+- Model does not improve significantly over ARMA(1, 1). None of the additional parameters (AR2, MA1) are significant.
+- Short term dependence is captured by the ARMA(1, 1) model.
+- Adding a second AR term doesn't add meaningful predictions.
+
+
+### 7.6. Forecast next 5 days of returns and visualize them vs historical returns
+```{python}
+# forecast 5 days
+forecast_steps = 5
+forecast = fit_11.get_forecast(steps=forecast_steps)
+forecast_mean = forecast.predicted_mean
+forecast_ci = forecast.conf_int()
+
+# returns.index is datetime
+returns.index = pd.to_datetime(returns.index)
+
+# create forecast index 5 business days
+last_date = returns.index[-1]
+forecast_index = pd.bdate_range(start=last_date + pd.Timedelta(days=1), periods=forecast_steps)
+
+# plot historical and forecasted returns
+plt.figure(figsize=(12,6))
+plt.plot(returns.index, returns, label="Historical Returns", color='blue')
+plt.plot(forecast_index, forecast_mean, label="Forecasted Returns (5 days)", color='red', marker='o')
+plt.fill_between(forecast_index, forecast_ci.iloc[:,0], forecast_ci.iloc[:,1], color='pink', alpha=0.3)
+
+plt.title("Siemens Energy Daily Log Returns: Historical vs 5-Day Forecast")
+plt.xlabel("Date")
+plt.ylabel("Log Return")
+plt.legend()
+plt.show()
+```
+
+### 7.7. Compare the performance of ARMA(1,1) vs ARMA(2,1) using AIC/BIC
+```{python}
+# ARMA(1,1) summary
+print("ARMA(1,1) AIC:", fit_11.aic)
+print("ARMA(1,1) BIC:", fit_11.bic)
+
+# ARMA(2,1) summary
+print("ARMA(2,1) AIC:", fit_21.aic)
+print("ARMA(2,1) BIC:", fit_21.bic)
+```
+**Interpretation:**
+- Both AIC and BIC are lower for ARMA(1, 1), meaning it fits the data better while being simpler.
+- ARMA(2, 1) adds extra parameters taht do not significantly improve the fit.
+- Conclusion: ARMA(1, 1) is preferred over ARMA(2, 1) for Siemens Energy daily log returns; it captures short-term dependency without unnecessary complexity.
+
+
+## 8. ARMA for weather data
+
+### 8.1. Load the csv file and visualize the time series. Is there any visible trend or seasonality?
+We use the free [Open-Meteo Historical Weather API](https://open-meteo.com/) to download
+daily mean temperatures for **Barcelona, Spain** (lat 41.39, lon 2.15) for 2022–2025.
+
+```{python}
+url = "https://archive-api.open-meteo.com/v1/archive"
+params = {
+    "latitude":        41.3888,
+    "longitude":       2.1590,
+    "start_date":      "2020-01-01",
+    "end_date":        "2025-12-31",
+    "daily":           "temperature_2m_mean",
+    "timezone":        "Europe/Madrid",
+}
+
+response = requests.get(url, params=params, timeout=30)
+response.raise_for_status()
+data = response.json()
+
+df = pd.DataFrame({
+    "date": pd.to_datetime(data["daily"]["time"]),
+    "temp": data["daily"]["temperature_2m_mean"],
+})
+df = df.dropna().reset_index(drop=True)
+df = df.set_index("date")
+
+print(f"Fetched {len(df)} daily observations: {df.index[0].date()} → {df.index[-1].date()}")
+print(df.describe().round(2))
+```
+
+### 8.2. Visualize the raw time series
+
+```{python}
+fig, ax = plt.subplots(figsize=(12, 4))
+ax.plot(df.index, df["temp"], color="#3266ad", linewidth=0.9, alpha=0.85)
+ax.set_title("Barcelona Daily Mean Temperature (2020–2025)")
+ax.set_ylabel("Temperature (°C)")
+ax.xaxis.set_major_formatter(mdates.DateFormatter("%b %Y"))
+ax.xaxis.set_major_locator(mdates.MonthLocator(interval=3))
+plt.xticks(rotation=30)
+plt.tight_layout()
+plt.show()
+```
+
+**Interpretation:**
+We see a clear seasonality (aprox. 10 degrees in winter, aprox 25 degrees in summer). There's no obvious long-term trend. The series is non-stationary due to seasonality.
+
+
+### 8.3. Stationary test (ADF)
+```{python}
+adf_result = adfuller(df["temp"], autolag="AIC")
+print(f"ADF Statistic : {adf_result[0]}")
+print(f"p-value       : {adf_result[1]}")
+print(f"Critical (5%) : {adf_result[4]['5%']}")
+```
+
+**Interpretation:**
+The ADF test on the raw series shows p = 0.091, not stationary at 5% but borderline. This is expected because the series has seasonal non-stationarity (annual cycle), not just a trend.
+
+
+### 8.4. Difference the series to achieve stationarity
+
+We apply first-order differencing to remove the seasonal mean and make the series stationary.
+
+```{python}
+diff = df["temp"].diff().dropna()
+
+fig, axes = plt.subplots(2, 1, figsize=(12, 6), sharex=True)
+
+axes[0].plot(df.index, df["temp"], color="#3266ad", linewidth=0.8)
+axes[0].set_title("Original series")
+axes[0].set_ylabel("Temp (°C)")
+
+axes[1].plot(diff.index, diff.values, color="#D85A30", linewidth=0.8)
+axes[1].axhline(0, color="black", linewidth=0.8, linestyle="--")
+axes[1].set_title("First-differenced series  dy_t")
+axes[1].set_ylabel("dTemp (°C)")
+axes[1].xaxis.set_major_formatter(mdates.DateFormatter("%b %Y"))
+axes[1].xaxis.set_major_locator(mdates.MonthLocator(interval=3))
+
+plt.xticks(rotation=30)
+plt.tight_layout()
+plt.show()
+
+# ADF on differenced series
+adf2 = adfuller(diff, autolag="AIC")
+print(f"ADF on differenced: statistic={adf2[0]:.4f}, p-value={adf2[1]:.6f}")
+```
+
+We obtain a stationary series as p-value=0.000000
+
+
+### 8.5. ACF and PACF of the Differenced Series
+
+```{python}
+# Use only lag-1 differenced series (from the plot above)
+diff = df["temp"].diff().dropna()
+
+fig, axes = plt.subplots(1, 2, figsize=(14, 4))
+
+plot_acf(diff, lags=40, ax=axes[0], color="#3266ad",
+         title="ACF — First-differenced series", zero=False)
+plot_pacf(diff, lags=40, ax=axes[1], color="#D85A30",
+          title="PACF — First-differenced series", zero=False, method="ywm")
+
+for ax in axes:
+    ax.set_xlabel("Lag (days)")
+    ax.axhline(0, color="black", linewidth=0.5)
+    # Add reference lines at lag 7 and 365 to spot weekly/annual patterns
+    for lag in [7, 14, 21]:
+        ax.axvline(lag, color="gray", linestyle=":", linewidth=0.7, alpha=0.5)
+
+plt.tight_layout()
+plt.show()
+```
+Nearly all lags within the confidence bands.
+The first-differenced Barcelona temperature series behaves like random walk with noise. Daily temperatures changes are unpredictable from past changes alone.
+This is realistic, as whether tomorrow is 1 degree warmer or cooler than today carries almost no information about the day after.
+The only signal perceived is a small negative cluster at lags 1-5 in the PACF (values around -0.10 to -0.15), which barely touched the band edge. This is the only exploitable structure from the plots.
+
+**Model selection**: we will select ARIMA (1, 1, 1). We don't want to overfit with AR(2) or higher.
+
+
+### 8.6. Fit ARIMA(1, 1, 1) Model
+
+```{python}
+model = ARIMA(df["temp"], order=(1, 1, 1))
+result = model.fit()
+print(result.summary())
+
+phi1   = result.arparams[0]
+theta1 = result.maparams[0]
+sigma2 = result.params["sigma2"]
+print(f"\nφ₁  = {phi1:.4f}   (AR lag-1)")
+print(f"θ₁  = {theta1:.4f}   (MA lag-1)")
+print(f"σ²  = {sigma2:.4f}")
+```
+
+```{python}
+# residual diagnostics plot
+resid = result.resid.dropna()
+
+fig, axes = plt.subplots(1, 3, figsize=(15, 4))
+
+# residuals over time
+axes[0].plot(resid.index, resid.values, color="#888780", linewidth=0.6)
+axes[0].axhline(0, color="black", linewidth=0.8, linestyle="--")
+axes[0].set_title("Residuals over time")
+axes[0].set_ylabel("ε_t (°C)")
+
+# distribution
+axes[1].hist(resid, bins=50, color="#3266ad", edgecolor="white", linewidth=0.3)
+axes[1].set_title(f"Residual distribution\nKurtosis = 4.30  (Normal = 3.0)")
+
+# ACF of residuals
+from statsmodels.graphics.tsaplots import plot_acf
+plot_acf(resid, lags=20, ax=axes[2], color="#D85A30",
+         title="ACF of residuals\n(should be white noise)", zero=False)
+
+plt.tight_layout()
+plt.show()
+```
+
+The model is well specified, the only real issue is non-gaussianity...
+
+
+### 8.7. Forecast next 7 days of temperature changes
+
+```{python}
+steps = 7 # days
+forecast = result.get_forecast(steps=steps)
+fc_level = forecast.predicted_mean # temperature level
+fc_ci = forecast.conf_int(alpha=0.05)
+
+last_date = df.index[-1]
+last_temp = df["temp"].iloc[-1]
+fc_dates  = pd.date_range(last_date + pd.Timedelta(days=1), periods=steps, freq="D")
+fc_level.index = fc_dates
+fc_ci.index    = fc_dates
+
+prev_levels = np.concatenate([[last_temp], fc_level.values[:-1]])
+delta_hat   = fc_level.values - prev_levels
+```
+
+
+### 8.8. Convert the predicted changes back to temperature predictions + visualize
+
+```{python}
+cumulative = np.cumsum(delta_hat)
+manual_temps = last_temp + cumulative # should match fc_level.values exactly
+print(np.round(manual_temps - fc_level.values, 6)) # should be all aprox 0
+```
+
+
+### 8.8. Plot actual vs fitted values for the last 30 days
+
+```{python}
+fitted_vals = result.fittedvalues
+last30_actual = df["temp"].iloc[-30:]
+last30_fitted = fitted_vals.loc[last30_actual.index]
+residuals_30  = last30_actual - last30_fitted
+
+fig, ax = plt.subplots(figsize=(13, 5))
+
+ax.plot(last30_actual.index, last30_actual.values,
+        color="#3266ad", linewidth=2, marker="o",
+        markersize=4, label="Actual T_t")
+ax.plot(last30_fitted.index, last30_fitted.values,
+        color="#D85A30", linewidth=1.8, linestyle="--",
+        marker="s", markersize=4, label="Fitted T̂_t  ARIMA(1,1,1)")
+ax.fill_between(last30_actual.index,
+                last30_actual.values, last30_fitted.values,
+                alpha=0.12, color="#888780", label="Error region")
+ax.set_title("actual vs fitted last 30 days", fontweight="bold")
+ax.set_ylabel("Temperature (deg)")
+ax.legend()
+ax.xaxis.set_major_formatter(mdates.DateFormatter("%d %b"))
+plt.xticks(rotation=25)
+plt.tight_layout()
+plt.show()
+
+rmse = np.sqrt(np.mean(residuals_30**2))
+mae  = np.mean(np.abs(residuals_30))
+print(f"RMSE : {rmse:.3f} degrees")
+print(f"MAE  : {mae:.3f} degrees")
+```
+
+The fitted line tracks the actual one with a one-day lag. The model always knows where temperature was yesterday (AR) and corrects for yesterday's error (MA). It follows the shape well but missess turning points by one step. Limitation of ARIMA model: cannot anticipate direction changes, only follow them.
+
+The gray area (error) is narrow most of the time, widening on 04 Dec and 24 Dec, corresponding to extreme days that caused the leptokurdic residual distribution saw in previous plots.
+
+
+### 8.9. Optional: try using a seasonal ARIMA (SARIMA) if there is weekly or yearly seasonality in temperature
+
+Daily temperature has annual seasonality (summer/winter cycle), not weekly. The seasonal period we will use is m=365.
+
+```{python}
+sarima = SARIMAX(
+    df["temp"],
+    order=(1, 1, 1),
+    seasonal_order=(1, 0, 0, 365),
+    enforce_stationarity=False,
+    enforce_invertibility=False,
+)
+sarima_result = sarima.fit(disp=False)
+print(sarima_result.summary())
+```
+Why (1, 0, 0)[365] seasonal part?
+- P=1 -> AR at lag 365: today correlates with same day last year
+- D=0 -> no seasonal differencing (d=1 already handles stationarity)
+- Q=0 -> no seasonal MA
+
+**Parameter interpretation:**
+```{python}
+phi1_s  = sarima_result.arparams[0]       # non-seasonal AR(1)
+theta1_s = sarima_result.maparams[0]      # non-seasonal MA(1)
+Phi1    = sarima_result.seasonalarparams[0]  # seasonal AR(1) at lag 365
+print(f"\nNon-seasonal  φ₁  = {phi1_s:.4f}")
+print(f"Non-seasonal  θ₁  = {theta1_s:.4f}")
+print(f"Seasonal      Φ₁  = {Phi1:.4f}")
+```
+
+- φ₁ = 0.7271 -> today's temperature change is 73% correlated with yesterday's
+- θ₁ = -0.8666 -> the model rapidly undoes yesterday's forecast mistake
+- Φ₁ = 0.0202 -> the seasonal correction from 365 days ago contributes only 2% weight... Practically zero.
+
+This means that the 7-day forecast from SARIMA will be almost identical to the plain ARIMA one, because the seasonal term contributes the most.
+
+**Model comparison:**
+```{python}
+print(f"ARIMA(1,1,1): AIC: {result.aic:.1f}, BIC: {result.bic:.1f}")
+print(f"SARIMA(1,1,1)(1,0,0)[365]: AIC: {sarima_result.aic:.1f}, BIC: {sarima_result.bic:.1f}")
+delta_aic = result.aic - sarima_result.aic
+```
+
+**Fitted vs actual last 30 days: ARIMA vs SARIMA**
+```{python}
+sarima_fitted = sarima_result.fittedvalues
+s_last30 = sarima_fitted.loc[last30_actual.index]
+s_residuals_30 = last30_actual - s_last30
+
+fig, ax = plt.subplots(figsize=(13, 5))
+
+ax.plot(last30_actual.index, last30_actual.values,
+        color="#3266ad", linewidth=2, marker="o",
+        markersize=4, label="Actual T_t")
+ax.plot(last30_fitted.index, last30_fitted.values,
+        color="#D85A30", linewidth=1.6, linestyle="--",
+        marker="s", markersize=3, label="ARIMA(1,1,1) fitted", alpha=0.8)
+ax.plot(s_last30.index, s_last30.values,
+        color="#639922", linewidth=1.6, linestyle="-.",
+        marker="^", markersize=4, label="SARIMA(1,1,1)(1,0,0)[365] fitted")
+
+ax.set_title("Actual vs Fitted last 30 days\nARIMA vs SARIMA")
+ax.set_ylabel("Temperature (deg)")
+ax.legend()
+ax.xaxis.set_major_formatter(mdates.DateFormatter("%d %b"))
+plt.xticks(rotation=25)
+plt.tight_layout()
+plt.show()
+
+# Metrics comparison
+rmse_s = np.sqrt(np.mean(s_residuals_30**2))
+mae_s  = np.mean(np.abs(s_residuals_30))
+print(f"\n Last-30-day comparison")
+print(f"ARIMA  RMSE: {rmse:.3f} degrees   MAE: {mae:.3f} degrees")
+print(f"SARIMA RMSE: {rmse_s:.3f} degrees   MAE: {mae_s:.3f} degrees")
+print(f"RMSE improvement: {rmse - rmse_s:.3f} degrees")
+```
