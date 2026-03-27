@@ -13,35 +13,37 @@ editor_options:
 
 # Practical 3a AR(p) Models
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
-library(reticulate)
-py_install("yfinance")
-py_install("statsmodels")
-py_install("matplotlib")
-py_install("meteostat")
-```
-
 ## 1. Simulating AR(p) models
+
 Generate an AR(2) model:
 
 ```{r}
 
 n<-1000
 x<-arima.sim(list(ar = c(0.8897, -0.4858), sd = sqrt(0.1796)),n)
-plot(x,type="l")
+plot(x,type="l",main="Simulated AR(2) Time Series", ylab="Value", xlab="Time")
 
 ```
+
+The simulated series shows a stochastic behavior with no clear trend or
+seasonality, as expected from an AR(p) process. The values fluctuate
+around a constant mean, suggesting stationarity.
 
 Compute its autocorrelation function:
 
 ```{r}
-acf(x)
+acf(x, main="ACF of Simulated AR(2)")
 ```
 
-Repeat the same exercise with different values of n, with a different number of parameters, and with different parameters of the AR(p).
+The autocorrelation function shows a gradual decay (kind of
+exponential), which is characteristic of AR processes. This confirms
+that the data was generated from an AR model.
 
-First I create a function to build the AR(p) model, so that I can easily vary n, p and the parameters phi:
+### Repeat for different n, number of parameters and different p of the AR(p).
+
+First I create a function to build the AR(p) model, so that I can easily
+vary n, p and the parameters phi:
+
 ```{r}
 simulate_ar <- function(n, phi, sigma2 = 1) {
   
@@ -69,6 +71,7 @@ simulate_ar <- function(n, phi, sigma2 = 1) {
 ```
 
 ### REPEAT FOR DIFFERENT n
+
 ```{r}
 n_values <- c(100, 500, 1000)
 
@@ -78,7 +81,23 @@ for (n in n_values) {
 }
 ```
 
-### REPEAT FOR DIFFERENT p (AR orders)
+*Observations:*
+
+-   Smaller n (100): the simulated series appears more irregular and the
+    ACF is noisier. This makes the underlying auto-regressive structure
+    less clear, because of the visual impact of the random fluctuations.
+
+-   Larger n (e.g. 1000): the behavior of the series becomes more
+    representative of the theoretical AR model. The expected decay
+    pattern of the ACF becomes clearer and smoother (after the decay,
+    the values tend to be around 0, while for n=100 the values were
+    still oscillating between -0.2 and 0.2 --\> dashed blue lines).
+
+Overall, increasing n does not change the true model, but it improves
+the visibility of its properties.
+
+### REPEAT FOR DIFFERENT AR orders
+
 ```{r}
 phi_list <- list(
   c(0.7), #AR(1) 
@@ -91,36 +110,422 @@ for (phi in phi_list) {
 }
 ```
 
-### REPEAT FOR DIFFERENT n AND p COMBINED
-```{r}
-n_values <- c(100, 500, 1000)
+Changing the order *p* changes how many past observations influence the
+current value. As p increases, the dependence structure becomes more
+complex and may persist over more lags.
 
-phi_list <- list(
-  c(0.7),
+-   **AR(1):** each observation depends only on the immediately previous
+    value. The ACF has a smooth decay.
+
+-   **AR(2)** and **AR(3):** the dependence involves more than one lag,
+    so the series show richer dynamics. The ACF still decays gradually,
+    but less smoothly than the AR(1) case and with an oscillatory
+    behavior (resembling damped oscillations).
+
+Overall, increasing the order of the model *p* increases the complexity
+of temporal dependence. This can be observed **both in the time series
+plot** (signals are reacher as *p* increases) **and in the ACF**, which
+shows less smooth decay and more complex shapes due to the combined
+effect of multiple lagged terms.
+
+### REPEAT FOR DIFFERENT p
+
+I choose to fix n = 1000 and p=2, so that I can observe how the time
+series and ACF change as I vary the parameters.
+
+```{r}
+set.seed(123)
+n <- 500
+
+phi_list_values <- list(
+  c(0.3, 0.2),
   c(0.8897, -0.4858),
-  c(0.6, -0.3, 0.2)
+  c(1.2, -0.7)
 )
 
+titles_values <- c(
+  "AR(2): phi = (0.3, 0.2)",
+  "AR(2): phi = (0.8897, -0.4858)",
+  "AR(2): phi = (1.2, -0.7)"
+)
+
+par(mfrow = c(3, 2), mar = c(4, 4, 3, 1))
+
+for (i in 1:length(phi_list_values)) {
+  
+  x <- arima.sim(list(ar = phi_list_values[[i]]), n = n, sd = sqrt(0.1796))
+  
+  plot(x, type = "l",
+       main = paste(titles_values[i], "- Series"),
+       xlab = "Time", ylab = "Value")
+  
+  acf(x,
+      main = paste(titles_values[i], "- ACF"))
+}
+
+par(mfrow = c(1, 1))
+```
+
+**Observations:**
+
+The three simulated AR(2) series show:
+
+-   similar overall behavior –\> in fact we can observe stationary
+    fluctuations around a constant mean
+
+-   their dependence structure changes depending on the parameter values
+
+    -   phi = (0.3, 0.2) –\> the series looks "random" and the ACF goes
+        to zero smoothly.\
+        This is the case with small coefficients, so the dependence
+        between observations is weak.
+
+    -   phi = (0.8897, -0.4858) –\> the series looks slightly smoother
+        than previous, the decay is a bit more oscillatory. The ACF
+        stabilizes around 0 in longer time than phi = (0.3, 0.2) - which
+        is in accordance with larger coefficients leading to stronger
+        persistence.
+
+    -   phi = (1.2, -0.7) –\> the series looks more structured and less
+        random, and the ACF has stronger oscillations. This could be
+        indicative of alternating correlations across lags - which is
+        compatible with such large coefficients.
+
+Overall, increasing the magnitude of the coefficients increases the
+persistence of the process. This also leads to oscillatory behavior in
+the ACF, which indicates a more complex temporal dependence.
+
+## 2. Fitting AR(p) models
+
+With the following commands, we will obtain an estimation of the AR(2)
+parameters and the intercept. We will assess the quality of the fit, and
+try with larger values of n.
+
+```{r}
+n<-1000
+x<-arima.sim(list(ar = c(0.8897, -0.4858), sd = sqrt(0.1796)), n)
+plot(x,type="l",main="Simulated AR(2) series",xlab="Time",ylab="Value")
+s1<-arima(x, order=c(2,0,0), method="ML")
+s1
+```
+
+**Observations:**
+
+-   As it happened before, the generated time series fluctuates around a
+    constant mean with no visible trend or seasonality, which is
+    consistent with a stationary AR(2) process.
+
+-   **Fitted values:** these values estimate the autoregressive
+    coefficients from the simulated data and they resulted to be very
+    close to the true values
+
+    -   true coefficients: ϕ1=0.8897 and ϕ2=−0.4858
+
+    -   estimated coefficients: ϕ1=0.8665 and ϕ2=−0.4481
+
+        So the model fits the data well.
+
+### Try with larger values of n
+
+```{r}
+n_values <- c(100, 500, 1000, 5000)
+
+par(mfrow = c(2,2), mar = c(4,4,3,1))
+
 for (n in n_values) {
-  for (phi in phi_list) {
-    
-    x <- arima.sim(list(ar = phi), n = n, sd = sqrt(0.1796))
-    
-    par(mfrow=c(1,2))
-    
-    plot(x, type="l",
-         main=paste("AR(",length(phi),")  n=",n,sep=""))
-    
-    acf(x, main="ACF")
-    
-  }
+  x <- arima.sim(list(ar = c(0.8897, -0.4858), sd = sqrt(0.1796)), n = n)
+  
+  plot(x, type = "l",
+       main = paste("Simulated AR(2), n =", n),
+       xlab = "Time",
+       ylab = "Value")
+  
+  s1 <- arima(x, order = c(2,0,0), method = "ML")
+  
+  cat("\n========================\n")
+  cat("n =", n, "\n")
+  print(s1)
+}
+
+par(mfrow = c(1,1))
+```
+
+**Observations:**
+
+From the results above, we can notice that changing *n* brings to really
+different performance of the estimating model. As the number of samples
+*n* increases, the estimated AR coefficients gets closer to the real
+coefficients. In fact, the standard error (s.e.) for ar1, ar2 and
+intercept decreases. Moreover, as *n* increases, also the performance
+indicator *aic* increases. So we can conclude that if the model has more
+data points, it will be easier to be more accurate in estimating the
+autoregressive coefficients.
+
+### Do it several times simulating new series with different parameters
+
+```{r}
+
+n <- 1000
+
+phi_list <- list(
+  c(0.5, 0.2),
+  c(0.8897, -0.4858),
+  c(1.2, -0.7)
+)
+
+par(mfrow = c(3,1), mar = c(4,4,3,1))
+
+for (phi in phi_list) {
+  x <- arima.sim(list(ar = phi, sd = sqrt(0.1796)), n = n)
+  
+  plot(x, type = "l",
+       main = paste("Simulated AR(2): phi = (", paste(phi, collapse = ", "), ")", sep = ""),
+       xlab = "Time",
+       ylab = "Value")
+}
+
+par(mfrow = c(1,1))
+
+for (phi in phi_list) {
+  x <- arima.sim(list(ar = phi, sd = sqrt(0.1796)), n = n)
+  s1 <- arima(x, order = c(2,0,0), method = "ML")
+  
+  cat("\n========================\n")
+  cat("True phi =", paste(phi, collapse = ", "), "\n")
+  print(s1)
 }
 ```
 
+**Observations:**
+
+In this case as well, with different simulated time series, the fitting
+model performs well and estimates the autoregression coefficients which
+are very close to the true coefficients (all the standard errors on ar1,
+ar2, intercept are very small (around 0.01-0.06).
+
+This shows that the fitted model adapts to different structures: in all
+these cases it is able to recover the main autoregressive structure.
+
+### Try alternative method
+
+Try instead s2\<- ar(x, order.max=2, method=”mle”).
+
+```{r}
+n <- 1000
+x <- arima.sim(list(ar = c(0.8897, -0.4858), sd = sqrt(0.1796)), n = n)
+
+s1 <- arima(x, order = c(2,0,0), method = "ML")
+s2 <- ar(x, order.max = 2, method = "mle")
+
+s1
+s2
+```
+
+**Observations:**
+
+The two method provide the same autoregressive coefficients and
+sigma\^2.
+
+The first method (s1) might be more helpful as it shows explicitly more
+details, e.g. the standard error and the intercept.
+
+### Try order.max=3
+
+```{r}
+s3 <- ar(x, order.max = 3, method = "mle")
+s3
+```
+
+In this case the fitting model tries AR up to the 3rd order: AR(1),
+AR(2) and AR(3) and compares them using *aic* internally, to then choose
+the best one.
+
+As the result shows, the best model chosen is still AR(2) and so it
+returned the same coefficients as before.
+
+This makes sense because the time series that we are fitting, x, was
+generated from AR(2). So the model doesn't need to represent it with
+AR(3), indicating that adding an extra lag does not improve the model
+fit.
+
+Overall, even when a higher maximum order is allowed, the model
+selection procedure correctly identifies AR(2) as the best model.
+
+## 3. Validation
+
+We will now experiment with the Box.test functionality.
+
+First we create an AR(2) model with phi = (0.8897, -0.4858).
+
+```{r}
+n<-1000
+x<-arima.sim(list(ar = c(0.8897, -0.4858), sd = sqrt(0.1796)), n)
+plot(x,type="l",main="Simulated AR(2) series, phi = (0.8897, -0.4858)",xlab="Time",ylab="Value")
+s<-arima(x, order=c(2,0,0), method="ML")
+s
+```
+
+```{r}
+y<-resid(s)
+
+# Residuals plot + ACF together
+par(mfrow = c(3,1))
+plot(x,type="l",main="Simulated AR(2) series, phi = (0.8897, -0.4858)",xlab="Time",ylab="Value")
+plot(y,type="l",main = "Residuals", xlab = "Time", ylab = "Residuals")
+acf(y, main = "ACF of Residuals")
+par(mfrow = c(1,1))
+
+# Ljung-Box tests
+h<-floor(log(n))
+Box.test(x,lag=h, type=c("Ljung-Box"))
+Box.test(y,lag=h,type=c("Ljung-Box"))
+```
+
+**Observations:**
+
+The residuals (y) fluctuate randomly around zero with no visible trend
+or structure, which suggests that the model has captured the main
+dynamics of the series.
+
+Looking at the ACF, we don't notice significant spikes - indicating that
+there is no remaining autocorrelations. This suggests that the residuals
+behave like white noise.
+
+This is also confirmed by the result of the Box-Ljung test:
+
+-   **p-value of x** \<0.05 –\> the Ljung-Box test rejects the null
+    hypothesis of independence, confirming that the series is not white
+    noise and contains temporal dependence.
+
+-   **p-value of y** \>0.05 –\> the Ljung-Box test does not reject the
+    null hypothesis, indicating that the residuals are consistent with
+    white noise. This validates the fitted AR(2) model.
+
+So eventually, since the residuals behave as white noise, we conclude
+that the AR(2) model provides an adequate fit to the data.
+
+Alternative method:
+
+```{r}
+
+h<-floor(log(n))
+tsdiag(s,gof.lag=h)
+```
+
+The resulting plots confirm that the residuals behave as white noise. In
+particular, the p-values of the Ljung-Box test are generally above 0.05,
+indicating no significant autocorrelation remains.
+
+**Conclusions:**
+
+The residual analysis shows that the fitted AR(2) model captures well
+the structure of the series. The residuals derived are randomly
+distributed, and their autocorrelation function shows no significant
+values. Furthermore, the Ljung-Box test rejects independence for the
+original series but not for the residuals. This confirms that the
+residuals behave as white noise and that the model provides a good fit.
+
+## 4. Selection of the best AR(p) model
+
+The following block selects the AR model, AR(1), AR(2) or AR(3), that
+best fits the data x, using the Akaike method, which we will see this in
+next lectures. The solution should be an AR(2).
+
+```{r}
+n<-1000
+x<-arima.sim(list(ar = c(0.8897, -0.4858), sd = sqrt(0.1796)), n)
+plot(x,type="l",main="Simulated AR(2) series, phi = (0.8897, -0.4858)",xlab="Time",ylab="Value")
+ss1<-ar(x, order.max=3, method="mle")
+ss1
+```
+
+As expected, even with the Akaike method the AR(2) is selected as best
+model to fit x.
+
+## 5. A complete analysis with real data
+
+We are going to use a dataset of the yearly level of Lake Huron from
+years 1875 to 1972.
+
+The exercise suggests to create the timseries and plot it, along with
+its lag plots.
+
+These are plots of (x(i-1), x(i)), then (x(i-2), x(i)), and so on. We
+are asked to notice that the linear trend disappears as we increase the
+lag.
+
+```{r}
+x<-LakeHuron
+x
+
+x <- LakeHuron
+
+plot(x,main = "Lake Huron Water Levels (1875–1972)",xlab = "Year",ylab = "Depth")
+
+lag.plot (x, lag=4, do.lines=F)
+```
+
+The time series represents yearly water levels of Lake Huron. The series
+appears relatively stable, although a slight downward trend can be
+observed over time, suggesting possible non-stationarity.
+
+The **lag plots** show the relationship between the series and its past
+values. For small lags, there is a clear linear relationship, indicating
+strong dependence between consecutive observations. As the lag
+increases, the relationship becomes more dispersed, suggesting
+decreasing dependence.
+
+```{r}
+acf(x)
+```
+
+The autocorrelation function shows a slow decay, indicating strong
+persistence in the series. This behavior suggests that the data may
+follow an autoregressive process and may not be purely random.
+
+Now fit a model AR(1) to x, using Yule-Walker & Maximum Likelihood
+Estimation methods to estimate the parameters:
+
+```{r}
+
+s1<-ar(x,order.max=1, method="yw")
+s1
+
+s2<-ar(x,order.max=1, method="mle")
+s2
+```
+
+Fitting an AR(1) model using both Yule-Walker and Maximum Likelihood
+methods gives similar coefficient estimates. This indicates that both
+methods provide consistent results for this dataset.
+
+### Fit a generic AR(p) model
+
+```{r}
+s3 <- ar(x, method = "mle")
+s3
+
+s4 <- ar(x, method = "yw")
+s4
+```
+
+Also in this case we can notice that both MLE and YW give similar
+coefficient estimates. And they both select p=2, so they return AR(2)
+models. This indicates robustness in the model selection and estimation
+process.
+
+**Conclusions:**
+
+The analysis suggests that the Lake Huron time series exhibits
+autoregressive behavior, with an AR(2) model providing a better fit than
+AR(1). This is indeed coherent with what we saw in the ACG and lag
+plots: they both suggested that the data was not purely random but
+acutally followed an autoregressive process.
 
 # Practical 3b Simulating and fitting ARMA models
 
 ## 1. Model simulation
+
 ```{r}
 # Simulate ARMA(1,0), ARMA(0,2) and ARMA(2,1) models
 SIM1 <- arima.sim(list(order=c(1, 0, 0), ar=0.7), n=1000)
@@ -134,12 +539,21 @@ plot(SIM2, type="l", main="SIM2: MA(2)")
 plot(SIM3, type="l", main="SIM3: ARMA(2,1)")
 ```
 
-**Interpretation**: 
-- The AR(1) model (SIM1) shows an autocorrelation pattern, with values that tend to persist over time. Values depend on their immediate past, leading to smoother persistence.
-- The MA(2) model (SIM2) exhibits more "spiky" behavior, with short memory. 
-- The ARMA(2,1) model (SIM3) combines features of both AR and MA, showing some persistence but also more variability than the pure AR(1) model.
+**Interpretation**:
+
+-   The AR(1) model (SIM1) shows an autocorrelation pattern, with values
+    that tend to persist over time. Values depend on their immediate
+    past, leading to smoother persistence.
+
+-   The MA(2) model (SIM2) exhibits more "spiky" behavior, with short
+    memory.
+
+-   The ARMA(2,1) model (SIM3) combines features of both AR and MA,
+    showing some persistence but also more variability than the pure
+    AR(1) model.
 
 ## 2. Heuristic identification of the model. Auto-correlation and partial auto-correlation functions
+
 ```{r}
 # Compute and plot the ACF and PACF for each simulated series
 par(mfrow=c(3,2))
@@ -155,9 +569,16 @@ pacf(SIM3, lag.max=30)
 ```
 
 **Interpretation**:
-- For SIM1 (AR(1)), the ACF shows a gradual decay, while the PACF has a significant spike at lag 1 and then drops off.
-- For SIM2 (MA(2)), the ACF has significant spikes at lags 1 and 2, while the PACF shows a gradual decay.
-- For SIM3 (ARMA(2,1)), the ACF and PACF show a more complex pattern, with both decay and significant spikes, reflecting the combination of AR and MA components.
+
+-   For SIM1 (AR(1)), the ACF shows a gradual decay, while the PACF has
+    a significant spike at lag 1 and then drops off.
+
+-   For SIM2 (MA(2)), the ACF has significant spikes at lags 1 and 2,
+    while the PACF shows a gradual decay.
+
+-   For SIM3 (ARMA(2,1)), the ACF and PACF show a more complex pattern,
+    with both decay and significant spikes, reflecting the combination
+    of AR and MA components.
 
 ## 3. Fitting a model
 
@@ -174,9 +595,17 @@ S3
 ```
 
 **Interpretation**:
-- The fitted AR(1) model for SIM1 show an estimated AR coefficient close to 0. (0.7172), confirming the true model.
-- The fitted MA(2) model for SIM2 show estimated MA coefficients close to 1.5 (1.5178) and 0.75 (0.7475), confirming the true model.
-- The fitted ARMA(2,1) model for SIM3 does not show estimated coefficients close to the true values (0.3, 0.2 for AR and 0.3 for MA). Obtained estimates are (AR(1) = 1.2707, AR(2) = −0.4478 and MA(1) = −0.6156).
+
+-   The fitted AR(1) model for SIM1 show an estimated AR coefficient
+    close to 0. (0.7172), confirming the true model.
+
+-   The fitted MA(2) model for SIM2 show estimated MA coefficients close
+    to 1.5 (1.5178) and 0.75 (0.7475), confirming the true model.
+
+-   The fitted ARMA(2,1) model for SIM3 does not show estimated
+    coefficients close to the true values (0.3, 0.2 for AR and 0.3 for
+    MA). Obtained estimates are (AR(1) = 1.2707, AR(2) = −0.4478 and
+    MA(1) = −0.6156).
 
 ## 4. Validation
 
@@ -190,21 +619,44 @@ Box.test(y, lag=h, type="Ljung-Box")      # residuals
 ```
 
 **Interpretation**:
-- The Ljung-Box test on the raw series (SIM3) yields a p-value of 2.2e-16, rejecting the null hypothesis of independence, which is expected since SIM3 is an ARMA(2,1) model with autocorrelation and is not white noise.
-- The Ljung-Box test on the residuals of the fitted model (S3) yields a p-value of 0.3582 which is greater than the common significance level of 0.05, failing to reject the null hypothesis of independence, indicating that the residuals behave like white noise and suggesting that the fitted ARMA(2,1) model adequately captures the autocorrelation structure of the data.
+
+-   The Ljung-Box test on the raw series (SIM3) yields a p-value of
+    2.2e-16, rejecting the null hypothesis of independence, which is
+    expected since SIM3 is an ARMA(2,1) model with autocorrelation and
+    is not white noise.
+
+-   The Ljung-Box test on the residuals of the fitted model (S3) yields
+    a p-value of 0.3582 which is greater than the common significance
+    level of 0.05, failing to reject the null hypothesis of
+    independence, indicating that the residuals behave like white noise
+    and suggesting that the fitted ARMA(2,1) model adequately captures
+    the autocorrelation structure of the data.
 
 ### 4.1. Faster method
+
 ```{r}
 # Diagnostic plots for the fitted ARMA(2,1) model
 tsdiag(S3, gof.lag=20)
 ```
 
 **Interpretation**:
-- The `tsdiag` function provides diagnostic plots for the fitted ARMA model (S3). 
-- The first plot shows the standardized residuals, which should ideally resemble white noise. 
-- The second plot displays the ACF of the residuals, where we look for no significant autocorrelations.
-- The third plot shows the p-values of the Ljung-Box test for different lags, where we want to see p-values above 0.05, indicating that the residuals are not significantly autocorrelated. 
-- Overall, if the residuals appear random and the ACF shows no significant spikes, it suggests that the fitted ARMA(2,1) model is appropriate for the data.
+
+-   The `tsdiag` function provides diagnostic plots for the fitted ARMA
+    model (S3).
+
+-   The first plot shows the standardized residuals, which should
+    ideally resemble white noise.
+
+-   The second plot displays the ACF of the residuals, where we look for
+    no significant autocorrelations.
+
+-   The third plot shows the p-values of the Ljung-Box test for
+    different lags, where we want to see p-values above 0.05, indicating
+    that the residuals are not significantly autocorrelated.
+
+-   Overall, if the residuals appear random and the ACF shows no
+    significant spikes, it suggests that the fitted ARMA(2,1) model is
+    appropriate for the data.
 
 ## 5. A complete example
 
@@ -232,14 +684,22 @@ tsdiag(p3, gof.lag=20)
 ```
 
 **Interpretation**:
-- As said before, the Ljung-Box test on the raw series (s3) yields a p-value of 2.2e-16, rejecting the null hypothesis of independence
-- The Ljung-Box test on the residuals of the fitted model (p3) yields a p-value of 0.8576, which is greater than the common significance level of 0.05, failing to reject the null hypothesis of independence, indicating that the residuals behave like white noise and suggesting that the fitted ARMA(2,1) model adequately captures the autocorrelation structure of the data.
 
+-   As said before, the Ljung-Box test on the raw series (s3) yields a
+    p-value of 2.2e-16, rejecting the null hypothesis of independence
+
+-   The Ljung-Box test on the residuals of the fitted model (p3) yields
+    a p-value of 0.8576, which is greater than the common significance
+    level of 0.05, failing to reject the null hypothesis of
+    independence, indicating that the residuals behave like white noise
+    and suggesting that the fitted ARMA(2,1) model adequately captures
+    the autocorrelation structure of the data.
 
 ## 6. Roots of Polynomials
 
-Given a polynomial 1+a_1 z + a_2 z^2 + ... + a_p z^p, we can ontain its roots using the `polyroot` function in R. 
-For an AR(2) model with parameters (0.8897, -0.4858), we can compute the roots as follows:
+Given a polynomial 1+a_1 z + a_2 z\^2 + ... + a_p z\^p, we can obtain
+its roots using the `polyroot` function in R. For an AR(2) model with
+parameters (0.8897, -0.4858), we can compute the roots as follows:
 
 ```{r}
 # Coefficients of the polynomial
@@ -250,6 +710,7 @@ roots
 ```
 
 ## 7. Download the daily closing prices for Siemens Energy and store them to a SE.csv file
+
 ```{python}
 # import libraries
 import yfinance as yf
@@ -269,6 +730,7 @@ warnings.filterwarnings("ignore")
 ```
 
 ### 7.1. Download the data
+
 ```{python}
 ticker = "ENR.DE"  # Siemens Energy ticker on XETRA
 data = yf.download(ticker, start="2020-01-01", end="2025-12-31")
@@ -277,6 +739,7 @@ print(data.head())
 ```
 
 ### 7.2. Load the CSV and compute log returns
+
 ```{python}
 #  yfinance has extra row at the beginning, skip it with header=1
 se_data = pd.read_csv("SE.csv", header=1, index_col=0, parse_dates=True)
@@ -293,6 +756,7 @@ plt.show()
 ```
 
 ### 7.3. Check stationarity with ADF test
+
 ```{python}
 adf_result = adfuller(returns)
 print(f"ADF Statistic: {adf_result[0]}")
@@ -301,12 +765,19 @@ print("Critical Values:", adf_result[4])
 ```
 
 **Interpretation**:
-- The log returns are stationary because the ADF test statistic is less than the critical value and the p-value is less than 0.05
-- ADF Statistic: -40.30339446788923
-- p-value: 0.0
-- We can reject the null hypothesis of a unit root, confirming that the log returns are stationary.
+
+-   The log returns are stationary because the ADF test statistic is
+    less than the critical value and the p-value is less than 0.05
+
+-   ADF Statistic: -40.30339446788923
+
+-   p-value: 0.0
+
+-   We can reject the null hypothesis of a unit root, confirming that
+    the log returns are stationary.
 
 ### 7.4. Plot ACF and PACF
+
 ```{python}
 # Plot ACF
 plt.figure(figsize=(12,5))
@@ -322,6 +793,7 @@ plt.show()
 ```
 
 ### 7.5. Fit an ARMA(1, 1) and ARMA(2, 1) model based on ACF and PACF
+
 ```{python}
 # ARMA(p, q) is ARIMA(p, 0, q) in statsmodels
 model_11 = ARIMA(returns, order=(1, 0, 1)) # p=1, d=0, q=1
@@ -334,39 +806,62 @@ print(fit_21.summary())
 ```
 
 ### Interpret the AR and MA coefficients. What do they say about short-term dependence in returns?
+
 Let's first interpret the ARMA(1, 1) coefficients. From the results:
 
-- AR(1) = -0.4588
-- MA(1) = 0.3663
-- σ² aprox 0.001
+-   AR(1) = -0.4588
+-   MA(1) = 0.3663
+-   σ² aprox 0.001
 
-The **autoregressive term (AR)** measures how much yesterday's return influences today's return. Negative value implies mean-reversion. If yesterday's return was positive, today's return is slightly pulled downward and if yesterday's return was negative, today's return tends to move upwards.
-This indicates that returns slightly reverse previous day's movements.
-The **moving average (MA)** term measures how much yesterday's stock (unexpected return) affects today's return. Positive value implies shock persistence. If yesterday unexpected return was positive, todayps return will slightly increase and viceversa.
-This indicates that short-term surprises in returns have a smal effect on the next day.
+The **autoregressive term (AR)** measures how much yesterday's return
+influences today's return. Negative value implies mean-reversion. If
+yesterday's return was positive, today's return is slightly pulled
+downward and if yesterday's return was negative, today's return tends to
+move upwards. This indicates that returns slightly reverse previous
+day's movements. The **moving average (MA)** term measures how much
+yesterday's stock (unexpected return) affects today's return. Positive
+value implies shock persistence. If yesterday unexpected return was
+positive, today return will slightly increase and viceversa. This
+indicates that short-term surprises in returns have a small effect on
+the next day.
 
 **Conclusion:**
-- Negative AR(1) -> returns tend to bounce back
-- Positive MA(1) -> short-lived stock persistence, sudden movements carry over to the next day.
-- Daily log returns are weakly autocorrelated. Past values and past stocks have a small but measurable impact.
+
+-   Negative AR(1) -\> returns tend to bounce back
+
+-   Positive MA(1) -\> short-lived stock persistence, sudden movements
+    carry over to the next day.
+
+-   Daily log returns are weakly autocorrelated. Past values and past
+    stocks have a small but measurable impact.
 
 For ARMA(2, 1) coefficients:
 
-- AR(1) = -0.8779 (very large standard error, not significant)
-- AR(2) = -0.0755 (very large standard error, not significant)
-- MA(1) = 0.7802 (very large standard error, not significant)
-- σ² aprox 0.001
+-   AR(1) = -0.8779 (very large standard error, not significant)
+-   AR(2) = -0.0755 (very large standard error, not significant)
+-   MA(1) = 0.7802 (very large standard error, not significant)
+-   σ² aprox 0.001
 
-The **autoregressive terms (AR1, AR2)** are not statistically significant, they have huge standard errors, so estimates are unreliable. Negative AR1 hints at mean-reversion, but due to insignificance we cannot confidently say returns show short-term dependence based on just AR terms. AR2 is close to zero -> little effect of returns from two years ago.
-The **moving average (MA1)** term is positive, but again not significant. This suggest that past stocks may have some short-lived effect, but we cannot rely on the estimate.
+The **autoregressive terms (AR1, AR2)** are not statistically
+significant, they have huge standard errors, so estimates are
+unreliable. Negative AR1 hints at mean-reversion, but due to
+insignificance we cannot confidently say returns show short-term
+dependence based on just AR terms. AR2 is close to zero -\> little
+effect of returns from two years ago. The **moving average (MA1)** term
+is positive, but again not significant. This suggest that past stocks
+may have some short-lived effect, but we cannot rely on the estimate.
 
 **Conclusion:**
-- Model does not improve significantly over ARMA(1, 1). None of the additional parameters (AR2, MA1) are significant.
-- Short term dependence is captured by the ARMA(1, 1) model.
-- Adding a second AR term doesn't add meaningful predictions.
 
+-   Model does not improve significantly over ARMA(1, 1). None of the
+    additional parameters (AR2, MA1) are significant.
+
+-   Short term dependence is captured by the ARMA(1, 1) model.
+
+-   Adding a second AR term doesn't add meaningful predictions.
 
 ### 7.6. Forecast next 5 days of returns and visualize them vs historical returns
+
 ```{python}
 # forecast 5 days
 forecast_steps = 5
@@ -395,6 +890,7 @@ plt.show()
 ```
 
 ### 7.7. Compare the performance of ARMA(1,1) vs ARMA(2,1) using AIC/BIC
+
 ```{python}
 # ARMA(1,1) summary
 print("ARMA(1,1) AIC:", fit_11.aic)
@@ -404,17 +900,26 @@ print("ARMA(1,1) BIC:", fit_11.bic)
 print("ARMA(2,1) AIC:", fit_21.aic)
 print("ARMA(2,1) BIC:", fit_21.bic)
 ```
-**Interpretation:**
-- Both AIC and BIC are lower for ARMA(1, 1), meaning it fits the data better while being simpler.
-- ARMA(2, 1) adds extra parameters taht do not significantly improve the fit.
-- Conclusion: ARMA(1, 1) is preferred over ARMA(2, 1) for Siemens Energy daily log returns; it captures short-term dependency without unnecessary complexity.
 
+**Interpretation:**
+
+-   Both AIC and BIC are lower for ARMA(1, 1), meaning it fits the data
+    better while being simpler.
+
+-   ARMA(2, 1) adds extra parameters that do not significantly improve
+    the fit.
+
+-   Conclusion: ARMA(1, 1) is preferred over ARMA(2, 1) for Siemens
+    Energy daily log returns; it captures short-term dependency without
+    unnecessary complexity.
 
 ## 8. ARMA for weather data
 
 ### 8.1. Load the csv file and visualize the time series. Is there any visible trend or seasonality?
-We use the free [Open-Meteo Historical Weather API](https://open-meteo.com/) to download
-daily mean temperatures for **Barcelona, Spain** (lat 41.39, lon 2.15) for 2022–2025.
+
+We use the free [Open-Meteo Historical Weather
+API](https://open-meteo.com/) to download daily mean temperatures for
+**Barcelona, Spain** (lat 41.39, lon 2.15) for 2022–2025.
 
 ```{python}
 url = "https://archive-api.open-meteo.com/v1/archive"
@@ -456,11 +961,12 @@ plt.tight_layout()
 plt.show()
 ```
 
-**Interpretation:**
-We see a clear seasonality (aprox. 10 degrees in winter, aprox 25 degrees in summer). There's no obvious long-term trend. The series is non-stationary due to seasonality.
-
+**Interpretation:** We see a clear seasonality (aprox. 10 degrees in
+winter, aprox. 25 degrees in summer). There's no obvious long-term
+trend. The series is non-stationary due to seasonality.
 
 ### 8.3. Stationary test (ADF)
+
 ```{python}
 adf_result = adfuller(df["temp"], autolag="AIC")
 print(f"ADF Statistic : {adf_result[0]}")
@@ -468,13 +974,14 @@ print(f"p-value       : {adf_result[1]}")
 print(f"Critical (5%) : {adf_result[4]['5%']}")
 ```
 
-**Interpretation:**
-The ADF test on the raw series shows p = 0.091, not stationary at 5% but borderline. This is expected because the series has seasonal non-stationarity (annual cycle), not just a trend.
-
+**Interpretation:** The ADF test on the raw series shows p = 0.091, not
+stationary at 5% but borderline. This is expected because the series has
+seasonal non-stationarity (annual cycle), not just a trend.
 
 ### 8.4. Difference the series to achieve stationarity
 
-We apply first-order differencing to remove the seasonal mean and make the series stationary.
+We apply first-order differencing to remove the seasonal mean and make
+the series stationary.
 
 ```{python}
 diff = df["temp"].diff().dropna()
@@ -503,7 +1010,6 @@ print(f"ADF on differenced: statistic={adf2[0]:.4f}, p-value={adf2[1]:.6f}")
 
 We obtain a stationary series as p-value=0.000000
 
-
 ### 8.5. ACF and PACF of the Differenced Series
 
 ```{python}
@@ -527,13 +1033,18 @@ for ax in axes:
 plt.tight_layout()
 plt.show()
 ```
-Nearly all lags within the confidence bands.
-The first-differenced Barcelona temperature series behaves like random walk with noise. Daily temperatures changes are unpredictable from past changes alone.
-This is realistic, as whether tomorrow is 1 degree warmer or cooler than today carries almost no information about the day after.
-The only signal perceived is a small negative cluster at lags 1-5 in the PACF (values around -0.10 to -0.15), which barely touched the band edge. This is the only exploitable structure from the plots.
 
-**Model selection**: we will select ARIMA (1, 1, 1). We don't want to overfit with AR(2) or higher.
+Nearly all lags within the confidence bands. The first-differenced
+Barcelona temperature series behaves like random walk with noise. Daily
+temperatures changes are unpredictable from past changes alone. This is
+realistic, as whether tomorrow is 1 degree warmer or cooler than today
+carries almost no information about the day after. The only signal
+perceived is a small negative cluster at lags 1-5 in the PACF (values
+around -0.10 to -0.15), which barely touched the band edge. This is the
+only exploitable structure from the plots.
 
+**Model selection**: we will select ARIMA (1, 1, 1). We don't want to
+overfit with AR(2) or higher.
 
 ### 8.6. Fit ARIMA(1, 1, 1) Model
 
@@ -577,7 +1088,6 @@ plt.show()
 
 The model is well specified, the only real issue is non-gaussianity...
 
-
 ### 8.7. Forecast next 7 days of temperature changes
 
 ```{python}
@@ -596,7 +1106,6 @@ prev_levels = np.concatenate([[last_temp], fc_level.values[:-1]])
 delta_hat   = fc_level.values - prev_levels
 ```
 
-
 ### 8.8. Convert the predicted changes back to temperature predictions + visualize
 
 ```{python}
@@ -604,7 +1113,6 @@ cumulative = np.cumsum(delta_hat)
 manual_temps = last_temp + cumulative # should match fc_level.values exactly
 print(np.round(manual_temps - fc_level.values, 6)) # should be all aprox 0
 ```
-
 
 ### 8.8. Plot actual vs fitted values for the last 30 days
 
@@ -639,14 +1147,20 @@ print(f"RMSE : {rmse:.3f} degrees")
 print(f"MAE  : {mae:.3f} degrees")
 ```
 
-The fitted line tracks the actual one with a one-day lag. The model always knows where temperature was yesterday (AR) and corrects for yesterday's error (MA). It follows the shape well but missess turning points by one step. Limitation of ARIMA model: cannot anticipate direction changes, only follow them.
+The fitted line tracks the actual one with a one-day lag. The model
+always knows where temperature was yesterday (AR) and corrects for
+yesterday's error (MA). It follows the shape well but misses turning
+points by one step. Limitation of ARIMA model: cannot anticipate
+direction changes, only follow them.
 
-The gray area (error) is narrow most of the time, widening on 04 Dec and 24 Dec, corresponding to extreme days that caused the leptokurdic residual distribution saw in previous plots.
-
+The gray area (error) is narrow most of the time, widening on 04 Dec and
+24 Dec, corresponding to extreme days that caused the leptokurdic
+residual distribution saw in previous plots.
 
 ### 8.9. Optional: try using a seasonal ARIMA (SARIMA) if there is weekly or yearly seasonality in temperature
 
-Daily temperature has annual seasonality (summer/winter cycle), not weekly. The seasonal period we will use is m=365.
+Daily temperature has annual seasonality (summer/winter cycle), not
+weekly. The seasonal period we will use is m=365.
 
 ```{python}
 sarima = SARIMAX(
@@ -659,12 +1173,13 @@ sarima = SARIMAX(
 sarima_result = sarima.fit(disp=False)
 print(sarima_result.summary())
 ```
-Why (1, 0, 0)[365] seasonal part?
-- P=1 -> AR at lag 365: today correlates with same day last year
-- D=0 -> no seasonal differencing (d=1 already handles stationarity)
-- Q=0 -> no seasonal MA
+
+Why (1, 0, 0)[365] seasonal part? - P=1 -\> AR at lag 365: today
+correlates with same day last year - D=0 -\> no seasonal differencing
+(d=1 already handles stationarity) - Q=0 -\> no seasonal MA
 
 **Parameter interpretation:**
+
 ```{python}
 phi1_s  = sarima_result.arparams[0]       # non-seasonal AR(1)
 theta1_s = sarima_result.maparams[0]      # non-seasonal MA(1)
@@ -674,13 +1189,18 @@ print(f"Non-seasonal  θ₁  = {theta1_s:.4f}")
 print(f"Seasonal      Φ₁  = {Phi1:.4f}")
 ```
 
-- φ₁ = 0.7271 -> today's temperature change is 73% correlated with yesterday's
-- θ₁ = -0.8666 -> the model rapidly undoes yesterday's forecast mistake
-- Φ₁ = 0.0202 -> the seasonal correction from 365 days ago contributes only 2% weight... Practically zero.
+-   φ₁ = 0.7271 -\> today's temperature change is 73% correlated with
+    yesterday's
+-   θ₁ = -0.8666 -\> the model rapidly undoes yesterday's forecast
+    mistake
+-   Φ₁ = 0.0202 -\> the seasonal correction from 365 days ago
+    contributes only 2% weight... Practically zero.
 
-This means that the 7-day forecast from SARIMA will be almost identical to the plain ARIMA one, because the seasonal term contributes the most.
+This means that the 7-day forecast from SARIMA will be almost identical
+to the plain ARIMA one, because the seasonal term contributes the most.
 
 **Model comparison:**
+
 ```{python}
 print(f"ARIMA(1,1,1): AIC: {result.aic:.1f}, BIC: {result.bic:.1f}")
 print(f"SARIMA(1,1,1)(1,0,0)[365]: AIC: {sarima_result.aic:.1f}, BIC: {sarima_result.bic:.1f}")
@@ -688,6 +1208,7 @@ delta_aic = result.aic - sarima_result.aic
 ```
 
 **Fitted vs actual last 30 days: ARIMA vs SARIMA**
+
 ```{python}
 sarima_fitted = sarima_result.fittedvalues
 s_last30 = sarima_fitted.loc[last30_actual.index]
