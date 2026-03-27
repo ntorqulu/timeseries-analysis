@@ -460,7 +460,7 @@ x
 
 x <- LakeHuron
 
-plot(x,main = "Lake Huron Water Levels (1875–1972)",xlab = "Year",ylab = "Depth")
+plot(x,main = "Lake Huron Water Levels (1875-1972)",xlab = "Year",ylab = "Depth")
 
 lag.plot (x, lag=4, do.lines=F)
 ```
