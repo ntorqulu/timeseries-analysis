@@ -539,12 +539,18 @@ plot(SIM2, type="l", main="SIM2: MA(2)")
 plot(SIM3, type="l", main="SIM3: ARMA(2,1)")
 ```
 
-**Interpretation**: - The AR(1) model (SIM1) shows an autocorrelation
-pattern, with values that tend to persist over time. Values depend on
-their immediate past, leading to smoother persistence. - The MA(2) model
-(SIM2) exhibits more "spiky" behavior, with short memory. - The
-ARMA(2,1) model (SIM3) combines features of both AR and MA, showing some
-persistence but also more variability than the pure AR(1) model.
+**Interpretation**:
+
+-   The AR(1) model (SIM1) shows an autocorrelation pattern, with values
+    that tend to persist over time. Values depend on their immediate
+    past, leading to smoother persistence.
+
+-   The MA(2) model (SIM2) exhibits more "spiky" behavior, with short
+    memory.
+
+-   The ARMA(2,1) model (SIM3) combines features of both AR and MA,
+    showing some persistence but also more variability than the pure
+    AR(1) model.
 
 ## 2. Heuristic identification of the model. Auto-correlation and partial auto-correlation functions
 
@@ -562,12 +568,17 @@ acf(SIM3, lag.max=30)
 pacf(SIM3, lag.max=30)
 ```
 
-**Interpretation**: - For SIM1 (AR(1)), the ACF shows a gradual decay,
-while the PACF has a significant spike at lag 1 and then drops off. -
-For SIM2 (MA(2)), the ACF has significant spikes at lags 1 and 2, while
-the PACF shows a gradual decay. - For SIM3 (ARMA(2,1)), the ACF and PACF
-show a more complex pattern, with both decay and significant spikes,
-reflecting the combination of AR and MA components.
+**Interpretation**:
+
+-   For SIM1 (AR(1)), the ACF shows a gradual decay, while the PACF has
+    a significant spike at lag 1 and then drops off.
+
+-   For SIM2 (MA(2)), the ACF has significant spikes at lags 1 and 2,
+    while the PACF shows a gradual decay.
+
+-   For SIM3 (ARMA(2,1)), the ACF and PACF show a more complex pattern,
+    with both decay and significant spikes, reflecting the combination
+    of AR and MA components.
 
 ## 3. Fitting a model
 
@@ -583,13 +594,18 @@ S2
 S3
 ```
 
-**Interpretation**: - The fitted AR(1) model for SIM1 show an estimated
-AR coefficient close to 0. (0.7172), confirming the true model. - The
-fitted MA(2) model for SIM2 show estimated MA coefficients close to 1.5
-(1.5178) and 0.75 (0.7475), confirming the true model. - The fitted
-ARMA(2,1) model for SIM3 does not show estimated coefficients close to
-the true values (0.3, 0.2 for AR and 0.3 for MA). Obtained estimates are
-(AR(1) = 1.2707, AR(2) = −0.4478 and MA(1) = −0.6156).
+**Interpretation**:
+
+-   The fitted AR(1) model for SIM1 show an estimated AR coefficient
+    close to 0. (0.7172), confirming the true model.
+
+-   The fitted MA(2) model for SIM2 show estimated MA coefficients close
+    to 1.5 (1.5178) and 0.75 (0.7475), confirming the true model.
+
+-   The fitted ARMA(2,1) model for SIM3 does not show estimated
+    coefficients close to the true values (0.3, 0.2 for AR and 0.3 for
+    MA). Obtained estimates are (AR(1) = 1.2707, AR(2) = −0.4478 and
+    MA(1) = −0.6156).
 
 ## 4. Validation
 
@@ -602,15 +618,19 @@ y <- resid(S3)
 Box.test(y, lag=h, type="Ljung-Box")      # residuals
 ```
 
-**Interpretation**: - The Ljung-Box test on the raw series (SIM3) yields
-a p-value of 2.2e-16, rejecting the null hypothesis of independence,
-which is expected since SIM3 is an ARMA(2,1) model with autocorrelation
-and is not white noise. - The Ljung-Box test on the residuals of the
-fitted model (S3) yields a p-value of 0.3582 which is greater than the
-common significance level of 0.05, failing to reject the null hypothesis
-of independence, indicating that the residuals behave like white noise
-and suggesting that the fitted ARMA(2,1) model adequately captures the
-autocorrelation structure of the data.
+**Interpretation**:
+
+-   The Ljung-Box test on the raw series (SIM3) yields a p-value of
+    2.2e-16, rejecting the null hypothesis of independence, which is
+    expected since SIM3 is an ARMA(2,1) model with autocorrelation and
+    is not white noise.
+
+-   The Ljung-Box test on the residuals of the fitted model (S3) yields
+    a p-value of 0.3582 which is greater than the common significance
+    level of 0.05, failing to reject the null hypothesis of
+    independence, indicating that the residuals behave like white noise
+    and suggesting that the fitted ARMA(2,1) model adequately captures
+    the autocorrelation structure of the data.
 
 ### 4.1. Faster method
 
@@ -619,16 +639,24 @@ autocorrelation structure of the data.
 tsdiag(S3, gof.lag=20)
 ```
 
-**Interpretation**: - The `tsdiag` function provides diagnostic plots
-for the fitted ARMA model (S3). - The first plot shows the standardized
-residuals, which should ideally resemble white noise. - The second plot
-displays the ACF of the residuals, where we look for no significant
-autocorrelations. - The third plot shows the p-values of the Ljung-Box
-test for different lags, where we want to see p-values above 0.05,
-indicating that the residuals are not significantly autocorrelated. -
-Overall, if the residuals appear random and the ACF shows no significant
-spikes, it suggests that the fitted ARMA(2,1) model is appropriate for
-the data.
+**Interpretation**:
+
+-   The `tsdiag` function provides diagnostic plots for the fitted ARMA
+    model (S3).
+
+-   The first plot shows the standardized residuals, which should
+    ideally resemble white noise.
+
+-   The second plot displays the ACF of the residuals, where we look for
+    no significant autocorrelations.
+
+-   The third plot shows the p-values of the Ljung-Box test for
+    different lags, where we want to see p-values above 0.05, indicating
+    that the residuals are not significantly autocorrelated.
+
+-   Overall, if the residuals appear random and the ACF shows no
+    significant spikes, it suggests that the fitted ARMA(2,1) model is
+    appropriate for the data.
 
 ## 5. A complete example
 
@@ -655,18 +683,21 @@ Box.test(p3$residuals, lag=h, type="Ljung-Box")
 tsdiag(p3, gof.lag=20)
 ```
 
-**Interpretation**: - As said before, the Ljung-Box test on the raw
-series (s3) yields a p-value of 2.2e-16, rejecting the null hypothesis
-of independence - The Ljung-Box test on the residuals of the fitted
-model (p3) yields a p-value of 0.8576, which is greater than the common
-significance level of 0.05, failing to reject the null hypothesis of
-independence, indicating that the residuals behave like white noise and
-suggesting that the fitted ARMA(2,1) model adequately captures the
-autocorrelation structure of the data.
+**Interpretation**:
+
+-   As said before, the Ljung-Box test on the raw series (s3) yields a
+    p-value of 2.2e-16, rejecting the null hypothesis of independence
+
+-   The Ljung-Box test on the residuals of the fitted model (p3) yields
+    a p-value of 0.8576, which is greater than the common significance
+    level of 0.05, failing to reject the null hypothesis of
+    independence, indicating that the residuals behave like white noise
+    and suggesting that the fitted ARMA(2,1) model adequately captures
+    the autocorrelation structure of the data.
 
 ## 6. Roots of Polynomials
 
-Given a polynomial 1+a_1 z + a_2 z\^2 + ... + a_p z\^p, we can ontain
+Given a polynomial 1+a_1 z + a_2 z\^2 + ... + a_p z\^p, we can obtain
 its roots using the `polyroot` function in R. For an AR(2) model with
 parameters (0.8897, -0.4858), we can compute the roots as follows:
 
@@ -733,11 +764,17 @@ print(f"p-value: {adf_result[1]}")
 print("Critical Values:", adf_result[4])
 ```
 
-**Interpretation**: - The log returns are stationary because the ADF
-test statistic is less than the critical value and the p-value is less
-than 0.05 - ADF Statistic: -40.30339446788923 - p-value: 0.0 - We can
-reject the null hypothesis of a unit root, confirming that the log
-returns are stationary.
+**Interpretation**:
+
+-   The log returns are stationary because the ADF test statistic is
+    less than the critical value and the p-value is less than 0.05
+
+-   ADF Statistic: -40.30339446788923
+
+-   p-value: 0.0
+
+-   We can reject the null hypothesis of a unit root, confirming that
+    the log returns are stationary.
 
 ### 7.4. Plot ACF and PACF
 
@@ -784,14 +821,19 @@ move upwards. This indicates that returns slightly reverse previous
 day's movements. The **moving average (MA)** term measures how much
 yesterday's stock (unexpected return) affects today's return. Positive
 value implies shock persistence. If yesterday unexpected return was
-positive, todayps return will slightly increase and viceversa. This
-indicates that short-term surprises in returns have a smal effect on the
-next day.
+positive, today return will slightly increase and viceversa. This
+indicates that short-term surprises in returns have a small effect on
+the next day.
 
-**Conclusion:** - Negative AR(1) -\> returns tend to bounce back -
-Positive MA(1) -\> short-lived stock persistence, sudden movements carry
-over to the next day. - Daily log returns are weakly autocorrelated.
-Past values and past stocks have a small but measurable impact.
+**Conclusion:**
+
+-   Negative AR(1) -\> returns tend to bounce back
+
+-   Positive MA(1) -\> short-lived stock persistence, sudden movements
+    carry over to the next day.
+
+-   Daily log returns are weakly autocorrelated. Past values and past
+    stocks have a small but measurable impact.
 
 For ARMA(2, 1) coefficients:
 
@@ -809,10 +851,14 @@ effect of returns from two years ago. The **moving average (MA1)** term
 is positive, but again not significant. This suggest that past stocks
 may have some short-lived effect, but we cannot rely on the estimate.
 
-**Conclusion:** - Model does not improve significantly over ARMA(1, 1).
-None of the additional parameters (AR2, MA1) are significant. - Short
-term dependence is captured by the ARMA(1, 1) model. - Adding a second
-AR term doesn't add meaningful predictions.
+**Conclusion:**
+
+-   Model does not improve significantly over ARMA(1, 1). None of the
+    additional parameters (AR2, MA1) are significant.
+
+-   Short term dependence is captured by the ARMA(1, 1) model.
+
+-   Adding a second AR term doesn't add meaningful predictions.
 
 ### 7.6. Forecast next 5 days of returns and visualize them vs historical returns
 
@@ -855,12 +901,17 @@ print("ARMA(2,1) AIC:", fit_21.aic)
 print("ARMA(2,1) BIC:", fit_21.bic)
 ```
 
-**Interpretation:** - Both AIC and BIC are lower for ARMA(1, 1), meaning
-it fits the data better while being simpler. - ARMA(2, 1) adds extra
-parameters taht do not significantly improve the fit. - Conclusion:
-ARMA(1, 1) is preferred over ARMA(2, 1) for Siemens Energy daily log
-returns; it captures short-term dependency without unnecessary
-complexity.
+**Interpretation:**
+
+-   Both AIC and BIC are lower for ARMA(1, 1), meaning it fits the data
+    better while being simpler.
+
+-   ARMA(2, 1) adds extra parameters that do not significantly improve
+    the fit.
+
+-   Conclusion: ARMA(1, 1) is preferred over ARMA(2, 1) for Siemens
+    Energy daily log returns; it captures short-term dependency without
+    unnecessary complexity.
 
 ## 8. ARMA for weather data
 
@@ -911,8 +962,8 @@ plt.show()
 ```
 
 **Interpretation:** We see a clear seasonality (aprox. 10 degrees in
-winter, aprox 25 degrees in summer). There's no obvious long-term trend.
-The series is non-stationary due to seasonality.
+winter, aprox. 25 degrees in summer). There's no obvious long-term
+trend. The series is non-stationary due to seasonality.
 
 ### 8.3. Stationary test (ADF)
 
@@ -1098,7 +1149,7 @@ print(f"MAE  : {mae:.3f} degrees")
 
 The fitted line tracks the actual one with a one-day lag. The model
 always knows where temperature was yesterday (AR) and corrects for
-yesterday's error (MA). It follows the shape well but missess turning
+yesterday's error (MA). It follows the shape well but misses turning
 points by one step. Limitation of ARIMA model: cannot anticipate
 direction changes, only follow them.
 
