@@ -1,0 +1,16 @@
+name: jupyter_env
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10
+  - pandas
+  - numpy
+  - matplotlib
+  - seaborn
+  - jupyterlab
+  - pip
+  - pip:
+      - google-auth
+      - google-auth-oauthlib
+      - google-api-python-client
