@@ -1,0 +1,1224 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.0/css/all.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/python-visualization/folium/folium/templates/leaflet.awesome.rotate.min.css"/>
+    
+            <meta name="viewport" content="width=device-width,
+                initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+            <style>
+                #map_ec2ff1ea96c68e54a91c986e31e22095 {
+                    position: relative;
+                    width: 100.0%;
+                    height: 100.0%;
+                    left: 0.0%;
+                    top: 0.0%;
+                }
+                .leaflet-container { font-size: 1rem; }
+            </style>
+
+            <style>html, body {
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 0;
+            }
+            </style>
+
+            <style>#map {
+                position:absolute;
+                top:0;
+                bottom:0;
+                right:0;
+                left:0;
+                }
+            </style>
+
+            <script>
+                L_NO_TOUCH = false;
+                L_DISABLE_3D = false;
+            </script>
+
+        
+</head>
+<body>
+    
+    <h3 align='center'>R2 station delay map (weekend or holiday)</h3>
+    
+            <div class="folium-map" id="map_ec2ff1ea96c68e54a91c986e31e22095" ></div>
+        
+</body>
+<script>
+    
+    
+            var map_ec2ff1ea96c68e54a91c986e31e22095 = L.map(
+                "map_ec2ff1ea96c68e54a91c986e31e22095",
+                {
+                    center: [41.433046257033396, 2.1219856319221537],
+                    crs: L.CRS.EPSG3857,
+                    ...{
+  "zoom": 9,
+  "zoomControl": true,
+  "preferCanvas": false,
+}
+
+                }
+            );
+
+            
+
+        
+    
+            var tile_layer_2d85221e711e9c31a78ba7e8f8f7775b = L.tileLayer(
+                "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+                {
+  "minZoom": 0,
+  "maxZoom": 20,
+  "maxNativeZoom": 20,
+  "noWrap": false,
+  "attribution": "\u0026copy; \u003ca href=\"https://www.openstreetmap.org/copyright\"\u003eOpenStreetMap\u003c/a\u003e contributors \u0026copy; \u003ca href=\"https://carto.com/attributions\"\u003eCARTO\u003c/a\u003e",
+  "subdomains": "abcd",
+  "detectRetina": false,
+  "tms": false,
+  "opacity": 1,
+}
+
+            );
+        
+    
+            tile_layer_2d85221e711e9c31a78ba7e8f8f7775b.addTo(map_ec2ff1ea96c68e54a91c986e31e22095);
+        
+    
+            var circle_marker_dccf84697da57140b1c08f6ed7166642 = L.circleMarker(
+                [41.1861015010197, 1.52612005997979],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.75, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 20, "stroke": true, "weight": 3}
+            ).addTo(map_ec2ff1ea96c68e54a91c986e31e22095);
+        
+    
+        var popup_fc21a318e115b8305991a1734fc0a6b2 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_5bf7b0ede8eb1221bd7515778cecfc41 = $(`<div id="html_5bf7b0ede8eb1221bd7515778cecfc41" style="width: 100.0%; height: 100.0%;"><b>Sant Vicenç de Calders</b><br>Average delay: 35.02 min<br>Median delay: 33.00 min<br>Records: 20611</div>`)[0];
+                popup_fc21a318e115b8305991a1734fc0a6b2.setContent(html_5bf7b0ede8eb1221bd7515778cecfc41);
+            
+        
+
+        circle_marker_dccf84697da57140b1c08f6ed7166642.bindPopup(popup_fc21a318e115b8305991a1734fc0a6b2)
+        ;
+
+        
+    
+    
+            circle_marker_dccf84697da57140b1c08f6ed7166642.bindTooltip(
+                `<div>
+                     Sant Vicenç de Calders
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_bcfbd23a78194672cad204eaee2c84f3 = L.circleMarker(
+                [41.1894878480103, 1.57507609628638],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.75, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 20, "stroke": true, "weight": 3}
+            ).addTo(map_ec2ff1ea96c68e54a91c986e31e22095);
+        
+    
+        var popup_9407f4bfa2d0513d3058ba4796ea88d2 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_9eb6dc067907d6498e88dbdb16e3a744 = $(`<div id="html_9eb6dc067907d6498e88dbdb16e3a744" style="width: 100.0%; height: 100.0%;"><b>Calafell</b><br>Average delay: 35.02 min<br>Median delay: 33.00 min<br>Records: 21891</div>`)[0];
+                popup_9407f4bfa2d0513d3058ba4796ea88d2.setContent(html_9eb6dc067907d6498e88dbdb16e3a744);
+            
+        
+
+        circle_marker_bcfbd23a78194672cad204eaee2c84f3.bindPopup(popup_9407f4bfa2d0513d3058ba4796ea88d2)
+        ;
+
+        
+    
+    
+            circle_marker_bcfbd23a78194672cad204eaee2c84f3.bindTooltip(
+                `<div>
+                     Calafell
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_577504b0c4c69b19bc5c30e14f789dac = L.circleMarker(
+                [41.1924316246447, 1.60639616252028],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.75, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 20, "stroke": true, "weight": 3}
+            ).addTo(map_ec2ff1ea96c68e54a91c986e31e22095);
+        
+    
+        var popup_6fbfb10cef7f6796c8b7353c88993eb3 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_5410d3ec582ddbaf8e70fb7d2c22f1b8 = $(`<div id="html_5410d3ec582ddbaf8e70fb7d2c22f1b8" style="width: 100.0%; height: 100.0%;"><b>Segur de Calafell</b><br>Average delay: 35.16 min<br>Median delay: 33.00 min<br>Records: 22055</div>`)[0];
+                popup_6fbfb10cef7f6796c8b7353c88993eb3.setContent(html_5410d3ec582ddbaf8e70fb7d2c22f1b8);
+            
+        
+
+        circle_marker_577504b0c4c69b19bc5c30e14f789dac.bindPopup(popup_6fbfb10cef7f6796c8b7353c88993eb3)
+        ;
+
+        
+    
+    
+            circle_marker_577504b0c4c69b19bc5c30e14f789dac.bindTooltip(
+                `<div>
+                     Segur de Calafell
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_5147cd5c0c6964055740b75a29544160 = L.circleMarker(
+                [41.1948229103806, 1.63186678561585],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.75, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 20, "stroke": true, "weight": 3}
+            ).addTo(map_ec2ff1ea96c68e54a91c986e31e22095);
+        
+    
+        var popup_045b97f83c4e518b0f85e7553dc2cdbc = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_2ec1bc1b29db860bb003be7b88c7a3cb = $(`<div id="html_2ec1bc1b29db860bb003be7b88c7a3cb" style="width: 100.0%; height: 100.0%;"><b>Cunit</b><br>Average delay: 35.25 min<br>Median delay: 33.00 min<br>Records: 22218</div>`)[0];
+                popup_045b97f83c4e518b0f85e7553dc2cdbc.setContent(html_2ec1bc1b29db860bb003be7b88c7a3cb);
+            
+        
+
+        circle_marker_5147cd5c0c6964055740b75a29544160.bindPopup(popup_045b97f83c4e518b0f85e7553dc2cdbc)
+        ;
+
+        
+    
+    
+            circle_marker_5147cd5c0c6964055740b75a29544160.bindTooltip(
+                `<div>
+                     Cunit
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_1e969c80c7a9ba140d0b192df6a4cee2 = L.circleMarker(
+                [41.2040964615357, 1.67572028336313],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.75, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 20, "stroke": true, "weight": 3}
+            ).addTo(map_ec2ff1ea96c68e54a91c986e31e22095);
+        
+    
+        var popup_d1ebe1023848c0f757113639b1d31a50 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_1a7c617660c53d9c36ec4bf57fab627c = $(`<div id="html_1a7c617660c53d9c36ec4bf57fab627c" style="width: 100.0%; height: 100.0%;"><b>Cubelles</b><br>Average delay: 35.29 min<br>Median delay: 33.00 min<br>Records: 21988</div>`)[0];
+                popup_d1ebe1023848c0f757113639b1d31a50.setContent(html_1a7c617660c53d9c36ec4bf57fab627c);
+            
+        
+
+        circle_marker_1e969c80c7a9ba140d0b192df6a4cee2.bindPopup(popup_d1ebe1023848c0f757113639b1d31a50)
+        ;
+
+        
+    
+    
+            circle_marker_1e969c80c7a9ba140d0b192df6a4cee2.bindTooltip(
+                `<div>
+                     Cubelles
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_319e8db867b50295e988ee281146d11d = L.circleMarker(
+                [41.2201162907788, 1.73234718648716],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.75, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 20, "stroke": true, "weight": 3}
+            ).addTo(map_ec2ff1ea96c68e54a91c986e31e22095);
+        
+    
+        var popup_7b5ce46bdfdd6b5e58957fb95ce4003c = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_1fb1044eaa1684d8f5f3044dcc6f2584 = $(`<div id="html_1fb1044eaa1684d8f5f3044dcc6f2584" style="width: 100.0%; height: 100.0%;"><b>Vilanova i la Geltrú</b><br>Average delay: 33.00 min<br>Median delay: 31.00 min<br>Records: 23916</div>`)[0];
+                popup_7b5ce46bdfdd6b5e58957fb95ce4003c.setContent(html_1fb1044eaa1684d8f5f3044dcc6f2584);
+            
+        
+
+        circle_marker_319e8db867b50295e988ee281146d11d.bindPopup(popup_7b5ce46bdfdd6b5e58957fb95ce4003c)
+        ;
+
+        
+    
+    
+            circle_marker_319e8db867b50295e988ee281146d11d.bindTooltip(
+                `<div>
+                     Vilanova i la Geltrú
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_22a00780c01960117b8f064fea78b397 = L.circleMarker(
+                [41.2393559475563, 1.80888494564787],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.75, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 20, "stroke": true, "weight": 3}
+            ).addTo(map_ec2ff1ea96c68e54a91c986e31e22095);
+        
+    
+        var popup_774861d6bd47c32c90641e53ac302a5e = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_f26cc9ea2cb17f62f4e87672c12d14a6 = $(`<div id="html_f26cc9ea2cb17f62f4e87672c12d14a6" style="width: 100.0%; height: 100.0%;"><b>Sitges</b><br>Average delay: 32.81 min<br>Median delay: 31.00 min<br>Records: 24607</div>`)[0];
+                popup_774861d6bd47c32c90641e53ac302a5e.setContent(html_f26cc9ea2cb17f62f4e87672c12d14a6);
+            
+        
+
+        circle_marker_22a00780c01960117b8f064fea78b397.bindPopup(popup_774861d6bd47c32c90641e53ac302a5e)
+        ;
+
+        
+    
+    
+            circle_marker_22a00780c01960117b8f064fea78b397.bindTooltip(
+                `<div>
+                     Sitges
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_efe328bf91de1a7f063a419979789c12 = L.circleMarker(
+                [41.2542197362121, 1.90236184775387],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.75, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 20, "stroke": true, "weight": 3}
+            ).addTo(map_ec2ff1ea96c68e54a91c986e31e22095);
+        
+    
+        var popup_6ab24aa2df4510b3638053f0fa221358 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_dc73890b809a03fd9ae2171e9f805226 = $(`<div id="html_dc73890b809a03fd9ae2171e9f805226" style="width: 100.0%; height: 100.0%;"><b>Garraf</b><br>Average delay: 27.14 min<br>Median delay: 24.00 min<br>Records: 33075</div>`)[0];
+                popup_6ab24aa2df4510b3638053f0fa221358.setContent(html_dc73890b809a03fd9ae2171e9f805226);
+            
+        
+
+        circle_marker_efe328bf91de1a7f063a419979789c12.bindPopup(popup_6ab24aa2df4510b3638053f0fa221358)
+        ;
+
+        
+    
+    
+            circle_marker_efe328bf91de1a7f063a419979789c12.bindTooltip(
+                `<div>
+                     Garraf
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_3d9fb51b6e86949507384f92385d455e = L.circleMarker(
+                [41.2670522569009, 1.95684451043136],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.75, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 20, "stroke": true, "weight": 3}
+            ).addTo(map_ec2ff1ea96c68e54a91c986e31e22095);
+        
+    
+        var popup_e16c908a138add6de6c311ac9d6432f0 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_78ba5e2a614c4304393b033ba2b1f0d0 = $(`<div id="html_78ba5e2a614c4304393b033ba2b1f0d0" style="width: 100.0%; height: 100.0%;"><b>Platja de Castelldefels</b><br>Average delay: 13.97 min<br>Median delay: 11.00 min<br>Records: 15236</div>`)[0];
+                popup_e16c908a138add6de6c311ac9d6432f0.setContent(html_78ba5e2a614c4304393b033ba2b1f0d0);
+            
+        
+
+        circle_marker_3d9fb51b6e86949507384f92385d455e.bindPopup(popup_e16c908a138add6de6c311ac9d6432f0)
+        ;
+
+        
+    
+    
+            circle_marker_3d9fb51b6e86949507384f92385d455e.bindTooltip(
+                `<div>
+                     Platja de Castelldefels
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_1db464264f8c21939b515a83622345d4 = L.circleMarker(
+                [41.2787348008295, 1.97929772549262],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.75, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 20, "stroke": true, "weight": 3}
+            ).addTo(map_ec2ff1ea96c68e54a91c986e31e22095);
+        
+    
+        var popup_f5bc9e587ec2cc1891954667f5c10211 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_51d0e1171c919434d1c2181110d08c5f = $(`<div id="html_51d0e1171c919434d1c2181110d08c5f" style="width: 100.0%; height: 100.0%;"><b>Castelldefels</b><br>Average delay: 26.61 min<br>Median delay: 24.00 min<br>Records: 35370</div>`)[0];
+                popup_f5bc9e587ec2cc1891954667f5c10211.setContent(html_51d0e1171c919434d1c2181110d08c5f);
+            
+        
+
+        circle_marker_1db464264f8c21939b515a83622345d4.bindPopup(popup_f5bc9e587ec2cc1891954667f5c10211)
+        ;
+
+        
+    
+    
+            circle_marker_1db464264f8c21939b515a83622345d4.bindTooltip(
+                `<div>
+                     Castelldefels
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_abf13a6d589d833927c472aa782490fd = L.circleMarker(
+                [41.3030397336087, 2.0102813744918],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.75, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 20, "stroke": true, "weight": 3}
+            ).addTo(map_ec2ff1ea96c68e54a91c986e31e22095);
+        
+    
+        var popup_4d85a0eaa67d004ba7764a48f6472f71 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_909c7f144712760825123dbf66b5feae = $(`<div id="html_909c7f144712760825123dbf66b5feae" style="width: 100.0%; height: 100.0%;"><b>Gavà</b><br>Average delay: 26.47 min<br>Median delay: 24.00 min<br>Records: 34926</div>`)[0];
+                popup_4d85a0eaa67d004ba7764a48f6472f71.setContent(html_909c7f144712760825123dbf66b5feae);
+            
+        
+
+        circle_marker_abf13a6d589d833927c472aa782490fd.bindPopup(popup_4d85a0eaa67d004ba7764a48f6472f71)
+        ;
+
+        
+    
+    
+            circle_marker_abf13a6d589d833927c472aa782490fd.bindTooltip(
+                `<div>
+                     Gavà
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_58cf16e4308d90f19cf9fa8e59aab866 = L.circleMarker(
+                [41.3312044968392, 2.09102621935777],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.75, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 20, "stroke": true, "weight": 3}
+            ).addTo(map_ec2ff1ea96c68e54a91c986e31e22095);
+        
+    
+        var popup_af73f447bf57ce9724a0f2eb6f3d16d3 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_384ca8104c11d67943c6b9918424c8fc = $(`<div id="html_384ca8104c11d67943c6b9918424c8fc" style="width: 100.0%; height: 100.0%;"><b>El Prat de Llobregat</b><br>Average delay: 18.61 min<br>Median delay: 12.00 min<br>Records: 57648</div>`)[0];
+                popup_af73f447bf57ce9724a0f2eb6f3d16d3.setContent(html_384ca8104c11d67943c6b9918424c8fc);
+            
+        
+
+        circle_marker_58cf16e4308d90f19cf9fa8e59aab866.bindPopup(popup_af73f447bf57ce9724a0f2eb6f3d16d3)
+        ;
+
+        
+    
+    
+            circle_marker_58cf16e4308d90f19cf9fa8e59aab866.bindTooltip(
+                `<div>
+                     El Prat de Llobregat
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_45f29b2a98b66d05dd85221f3353a8d1 = L.circleMarker(
+                [41.3538317321834, 2.11537383047956],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.75, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 20, "stroke": true, "weight": 3}
+            ).addTo(map_ec2ff1ea96c68e54a91c986e31e22095);
+        
+    
+        var popup_83a3fae4c4d82e3727eec562022b0e10 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_b89c445515e17eb2c2a2115c168afb9e = $(`<div id="html_b89c445515e17eb2c2a2115c168afb9e" style="width: 100.0%; height: 100.0%;"><b>Bellvitge | Gornal</b><br>Average delay: 9.63 min<br>Median delay: 7.00 min<br>Records: 39047</div>`)[0];
+                popup_83a3fae4c4d82e3727eec562022b0e10.setContent(html_b89c445515e17eb2c2a2115c168afb9e);
+            
+        
+
+        circle_marker_45f29b2a98b66d05dd85221f3353a8d1.bindPopup(popup_83a3fae4c4d82e3727eec562022b0e10)
+        ;
+
+        
+    
+    
+            circle_marker_45f29b2a98b66d05dd85221f3353a8d1.bindTooltip(
+                `<div>
+                     Bellvitge | Gornal
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_0cbcae1d1289afd82436d814227a9d2a = L.circleMarker(
+                [41.309325489716, 2.02745481244271],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.75, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 20, "stroke": true, "weight": 3}
+            ).addTo(map_ec2ff1ea96c68e54a91c986e31e22095);
+        
+    
+        var popup_287999ff3451d7ee1e21190e2d7b209a = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_32989f6fc71b6c067d34ae9ba00b68d4 = $(`<div id="html_32989f6fc71b6c067d34ae9ba00b68d4" style="width: 100.0%; height: 100.0%;"><b>Viladecans</b><br>Average delay: 26.52 min<br>Median delay: 24.00 min<br>Records: 35403</div>`)[0];
+                popup_287999ff3451d7ee1e21190e2d7b209a.setContent(html_32989f6fc71b6c067d34ae9ba00b68d4);
+            
+        
+
+        circle_marker_0cbcae1d1289afd82436d814227a9d2a.bindPopup(popup_287999ff3451d7ee1e21190e2d7b209a)
+        ;
+
+        
+    
+    
+            circle_marker_0cbcae1d1289afd82436d814227a9d2a.bindTooltip(
+                `<div>
+                     Viladecans
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_37cd44ca5f4d2e2493b5f82ab5820a3d = L.circleMarker(
+                [41.3790789811861, 2.14028390325908],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.75, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 20, "stroke": true, "weight": 3}
+            ).addTo(map_ec2ff1ea96c68e54a91c986e31e22095);
+        
+    
+        var popup_bbe74da49916fb69e8a026fa264b5b98 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_29676792f684690124b72197b01b9098 = $(`<div id="html_29676792f684690124b72197b01b9098" style="width: 100.0%; height: 100.0%;"><b>Barcelona-Sants</b><br>Average delay: 18.64 min<br>Median delay: 13.00 min<br>Records: 57405</div>`)[0];
+                popup_bbe74da49916fb69e8a026fa264b5b98.setContent(html_29676792f684690124b72197b01b9098);
+            
+        
+
+        circle_marker_37cd44ca5f4d2e2493b5f82ab5820a3d.bindPopup(popup_bbe74da49916fb69e8a026fa264b5b98)
+        ;
+
+        
+    
+    
+            circle_marker_37cd44ca5f4d2e2493b5f82ab5820a3d.bindTooltip(
+                `<div>
+                     Barcelona-Sants
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_d0cb531f301cd17f62b57922aec3bbe9 = L.circleMarker(
+                [41.3935212963419, 2.16631624197984],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.75, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 20, "stroke": true, "weight": 3}
+            ).addTo(map_ec2ff1ea96c68e54a91c986e31e22095);
+        
+    
+        var popup_4e08b38e75ef0c2e8a3affa97f22ec07 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_341deb875240cf887b0b7403909b56e4 = $(`<div id="html_341deb875240cf887b0b7403909b56e4" style="width: 100.0%; height: 100.0%;"><b>Barcelona-Passeig de Gràcia</b><br>Average delay: 18.51 min<br>Median delay: 12.00 min<br>Records: 58923</div>`)[0];
+                popup_4e08b38e75ef0c2e8a3affa97f22ec07.setContent(html_341deb875240cf887b0b7403909b56e4);
+            
+        
+
+        circle_marker_d0cb531f301cd17f62b57922aec3bbe9.bindPopup(popup_4e08b38e75ef0c2e8a3affa97f22ec07)
+        ;
+
+        
+    
+    
+            circle_marker_d0cb531f301cd17f62b57922aec3bbe9.bindTooltip(
+                `<div>
+                     Barcelona-Passeig de Gràcia
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_8960ebbe55cb10aa509d1d814a505115 = L.circleMarker(
+                [41.3040527489309, 2.07272042328131],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.75, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 20, "stroke": true, "weight": 3}
+            ).addTo(map_ec2ff1ea96c68e54a91c986e31e22095);
+        
+    
+        var popup_d4b309267d7aae8538401afeb01e19d4 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_c70ddb3fe494b2566781002393ec563a = $(`<div id="html_c70ddb3fe494b2566781002393ec563a" style="width: 100.0%; height: 100.0%;"><b>Aeroport</b><br>Average delay: 7.25 min<br>Median delay: 5.00 min<br>Records: 22734</div>`)[0];
+                popup_d4b309267d7aae8538401afeb01e19d4.setContent(html_c70ddb3fe494b2566781002393ec563a);
+            
+        
+
+        circle_marker_8960ebbe55cb10aa509d1d814a505115.bindPopup(popup_d4b309267d7aae8538401afeb01e19d4)
+        ;
+
+        
+    
+    
+            circle_marker_8960ebbe55cb10aa509d1d814a505115.bindTooltip(
+                `<div>
+                     Aeroport
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_985287b2fb8689161962673688809641 = L.circleMarker(
+                [41.4356336089679, 2.19371257730036],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.75, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 20, "stroke": true, "weight": 3}
+            ).addTo(map_ec2ff1ea96c68e54a91c986e31e22095);
+        
+    
+        var popup_205a2b78a853fd9a2fe724ea98481b59 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_f70289263ecb05b06810511611e12056 = $(`<div id="html_f70289263ecb05b06810511611e12056" style="width: 100.0%; height: 100.0%;"><b>Barcelona-Sant Andreu</b><br>Average delay: 7.93 min<br>Median delay: 6.00 min<br>Records: 24357</div>`)[0];
+                popup_205a2b78a853fd9a2fe724ea98481b59.setContent(html_f70289263ecb05b06810511611e12056);
+            
+        
+
+        circle_marker_985287b2fb8689161962673688809641.bindPopup(popup_205a2b78a853fd9a2fe724ea98481b59)
+        ;
+
+        
+    
+    
+            circle_marker_985287b2fb8689161962673688809641.bindTooltip(
+                `<div>
+                     Barcelona-Sant Andreu
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_50670e68c9220a02a033754a9578b590 = L.circleMarker(
+                [41.4840805752139, 2.18826577891092],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.75, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 20, "stroke": true, "weight": 3}
+            ).addTo(map_ec2ff1ea96c68e54a91c986e31e22095);
+        
+    
+        var popup_c1ce6f19fe714420be06850093482ecb = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_f60dacaa1ba557fd6fb371ef79c11360 = $(`<div id="html_f60dacaa1ba557fd6fb371ef79c11360" style="width: 100.0%; height: 100.0%;"><b>Montcada i Reixac</b><br>Average delay: 8.11 min<br>Median delay: 6.00 min<br>Records: 24541</div>`)[0];
+                popup_c1ce6f19fe714420be06850093482ecb.setContent(html_f60dacaa1ba557fd6fb371ef79c11360);
+            
+        
+
+        circle_marker_50670e68c9220a02a033754a9578b590.bindPopup(popup_c1ce6f19fe714420be06850093482ecb)
+        ;
+
+        
+    
+    
+            circle_marker_50670e68c9220a02a033754a9578b590.bindTooltip(
+                `<div>
+                     Montcada i Reixac
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_d316f2b9ae369db58529f2e8914a6990 = L.circleMarker(
+                [41.5329529425385, 2.21736712534934],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.75, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 20, "stroke": true, "weight": 3}
+            ).addTo(map_ec2ff1ea96c68e54a91c986e31e22095);
+        
+    
+        var popup_37d84dfef90708f54191f4d7fc8bb218 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_bcd438ace27829be1075c80690aaeff7 = $(`<div id="html_bcd438ace27829be1075c80690aaeff7" style="width: 100.0%; height: 100.0%;"><b>Mollet-Sant Fost</b><br>Average delay: 8.21 min<br>Median delay: 6.00 min<br>Records: 23923</div>`)[0];
+                popup_37d84dfef90708f54191f4d7fc8bb218.setContent(html_bcd438ace27829be1075c80690aaeff7);
+            
+        
+
+        circle_marker_d316f2b9ae369db58529f2e8914a6990.bindPopup(popup_37d84dfef90708f54191f4d7fc8bb218)
+        ;
+
+        
+    
+    
+            circle_marker_d316f2b9ae369db58529f2e8914a6990.bindTooltip(
+                `<div>
+                     Mollet-Sant Fost
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_9ce6ae101e43f0f56363db9c1d48419b = L.circleMarker(
+                [41.551149, 2.250041],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.75, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 20, "stroke": true, "weight": 3}
+            ).addTo(map_ec2ff1ea96c68e54a91c986e31e22095);
+        
+    
+        var popup_f27915d546752ad7abcbb91c3b9c7e18 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_e767f0b311dd8705014db02421464c89 = $(`<div id="html_e767f0b311dd8705014db02421464c89" style="width: 100.0%; height: 100.0%;"><b>Montmeló</b><br>Average delay: 8.28 min<br>Median delay: 6.00 min<br>Records: 24136</div>`)[0];
+                popup_f27915d546752ad7abcbb91c3b9c7e18.setContent(html_e767f0b311dd8705014db02421464c89);
+            
+        
+
+        circle_marker_9ce6ae101e43f0f56363db9c1d48419b.bindPopup(popup_f27915d546752ad7abcbb91c3b9c7e18)
+        ;
+
+        
+    
+    
+            circle_marker_9ce6ae101e43f0f56363db9c1d48419b.bindTooltip(
+                `<div>
+                     Montmeló
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_77a86fb231b909af2a76236f7da7d59f = L.circleMarker(
+                [41.4104189272174, 2.18920138224746],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.75, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 20, "stroke": true, "weight": 3}
+            ).addTo(map_ec2ff1ea96c68e54a91c986e31e22095);
+        
+    
+        var popup_6a7ca5944f338e393d1adf905e1e4f91 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_0c4ec21e0a8028088d7e9eb1d1b5e7ed = $(`<div id="html_0c4ec21e0a8028088d7e9eb1d1b5e7ed" style="width: 100.0%; height: 100.0%;"><b>Barcelona-El Clot</b><br>Average delay: 7.84 min<br>Median delay: 6.00 min<br>Records: 24028</div>`)[0];
+                popup_6a7ca5944f338e393d1adf905e1e4f91.setContent(html_0c4ec21e0a8028088d7e9eb1d1b5e7ed);
+            
+        
+
+        circle_marker_77a86fb231b909af2a76236f7da7d59f.bindPopup(popup_6a7ca5944f338e393d1adf905e1e4f91)
+        ;
+
+        
+    
+    
+            circle_marker_77a86fb231b909af2a76236f7da7d59f.bindTooltip(
+                `<div>
+                     Barcelona-El Clot
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_89e8d2576755ef9c12404db9a0a57e3f = L.circleMarker(
+                [41.5105097453881, 2.19991794690889],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.75, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 20, "stroke": true, "weight": 3}
+            ).addTo(map_ec2ff1ea96c68e54a91c986e31e22095);
+        
+    
+        var popup_b2f875b5230605a15c6e9d3afad9b666 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_62df37aab0cc5138fc16d820422a32d6 = $(`<div id="html_62df37aab0cc5138fc16d820422a32d6" style="width: 100.0%; height: 100.0%;"><b>La Llagosta</b><br>Average delay: 8.14 min<br>Median delay: 6.00 min<br>Records: 24366</div>`)[0];
+                popup_b2f875b5230605a15c6e9d3afad9b666.setContent(html_62df37aab0cc5138fc16d820422a32d6);
+            
+        
+
+        circle_marker_89e8d2576755ef9c12404db9a0a57e3f.bindPopup(popup_b2f875b5230605a15c6e9d3afad9b666)
+        ;
+
+        
+    
+    
+            circle_marker_89e8d2576755ef9c12404db9a0a57e3f.bindTooltip(
+                `<div>
+                     La Llagosta
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_bb434f35ee63a9c2ae84cf4a14b04b40 = L.circleMarker(
+                [41.5995096478962, 2.29159208126183],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.75, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 20, "stroke": true, "weight": 3}
+            ).addTo(map_ec2ff1ea96c68e54a91c986e31e22095);
+        
+    
+        var popup_86f7b940c8f876a66b731c646a535867 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_bc93d224c6eed817e29ae166baae058a = $(`<div id="html_bc93d224c6eed817e29ae166baae058a" style="width: 100.0%; height: 100.0%;"><b>Granollers Centre</b><br>Average delay: 8.41 min<br>Median delay: 6.00 min<br>Records: 23073</div>`)[0];
+                popup_86f7b940c8f876a66b731c646a535867.setContent(html_bc93d224c6eed817e29ae166baae058a);
+            
+        
+
+        circle_marker_bb434f35ee63a9c2ae84cf4a14b04b40.bindPopup(popup_86f7b940c8f876a66b731c646a535867)
+        ;
+
+        
+    
+    
+            circle_marker_bb434f35ee63a9c2ae84cf4a14b04b40.bindTooltip(
+                `<div>
+                     Granollers Centre
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_7c1fb2448de9a9e35d7ef97346b3516c = L.circleMarker(
+                [41.6365329513409, 2.35603785841466],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.75, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 20, "stroke": true, "weight": 3}
+            ).addTo(map_ec2ff1ea96c68e54a91c986e31e22095);
+        
+    
+        var popup_17108263679b5ec7b55bdda58a9afbbb = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_c3f0c5aeafd4a201e202b2dbc216bf3e = $(`<div id="html_c3f0c5aeafd4a201e202b2dbc216bf3e" style="width: 100.0%; height: 100.0%;"><b>Cardedeu</b><br>Average delay: 8.97 min<br>Median delay: 6.00 min<br>Records: 16746</div>`)[0];
+                popup_17108263679b5ec7b55bdda58a9afbbb.setContent(html_c3f0c5aeafd4a201e202b2dbc216bf3e);
+            
+        
+
+        circle_marker_7c1fb2448de9a9e35d7ef97346b3516c.bindPopup(popup_17108263679b5ec7b55bdda58a9afbbb)
+        ;
+
+        
+    
+    
+            circle_marker_7c1fb2448de9a9e35d7ef97346b3516c.bindTooltip(
+                `<div>
+                     Cardedeu
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_a85afd26a7ba7079ea57f9cac64f7e7f = L.circleMarker(
+                [41.6380237957566, 2.40477882035807],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.75, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 20, "stroke": true, "weight": 3}
+            ).addTo(map_ec2ff1ea96c68e54a91c986e31e22095);
+        
+    
+        var popup_786d9a82520e16c3088255cf5bb585ea = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_2f9c7629c484e39db8ba07ccccec4985 = $(`<div id="html_2f9c7629c484e39db8ba07ccccec4985" style="width: 100.0%; height: 100.0%;"><b>Llinars del Vallès</b><br>Average delay: 8.96 min<br>Median delay: 6.00 min<br>Records: 16518</div>`)[0];
+                popup_786d9a82520e16c3088255cf5bb585ea.setContent(html_2f9c7629c484e39db8ba07ccccec4985);
+            
+        
+
+        circle_marker_a85afd26a7ba7079ea57f9cac64f7e7f.bindPopup(popup_786d9a82520e16c3088255cf5bb585ea)
+        ;
+
+        
+    
+    
+            circle_marker_a85afd26a7ba7079ea57f9cac64f7e7f.bindTooltip(
+                `<div>
+                     Llinars del Vallès
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_d8a14397ab57abef34c7fcc93b1bbef0 = L.circleMarker(
+                [41.6717765351162, 2.45417192181694],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.75, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 20, "stroke": true, "weight": 3}
+            ).addTo(map_ec2ff1ea96c68e54a91c986e31e22095);
+        
+    
+        var popup_ef29e0f447f17195993fee5f7fcd3c36 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_9177c3d9fb9c73b4f4324abb41c6e200 = $(`<div id="html_9177c3d9fb9c73b4f4324abb41c6e200" style="width: 100.0%; height: 100.0%;"><b>Palautordera</b><br>Average delay: 9.07 min<br>Median delay: 6.00 min<br>Records: 16237</div>`)[0];
+                popup_ef29e0f447f17195993fee5f7fcd3c36.setContent(html_9177c3d9fb9c73b4f4324abb41c6e200);
+            
+        
+
+        circle_marker_d8a14397ab57abef34c7fcc93b1bbef0.bindPopup(popup_ef29e0f447f17195993fee5f7fcd3c36)
+        ;
+
+        
+    
+    
+            circle_marker_d8a14397ab57abef34c7fcc93b1bbef0.bindTooltip(
+                `<div>
+                     Palautordera
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_cb167244dfc36cc75eff30aa55a083d4 = L.circleMarker(
+                [41.6860241665012, 2.49123944361082],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.75, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 20, "stroke": true, "weight": 3}
+            ).addTo(map_ec2ff1ea96c68e54a91c986e31e22095);
+        
+    
+        var popup_9269e63d6affb0d80f8c206fa8ec8b0d = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_461d6763eeee8cfb45ecf658cc0d43ce = $(`<div id="html_461d6763eeee8cfb45ecf658cc0d43ce" style="width: 100.0%; height: 100.0%;"><b>Sant Celoni</b><br>Average delay: 9.34 min<br>Median delay: 7.00 min<br>Records: 15000</div>`)[0];
+                popup_9269e63d6affb0d80f8c206fa8ec8b0d.setContent(html_461d6763eeee8cfb45ecf658cc0d43ce);
+            
+        
+
+        circle_marker_cb167244dfc36cc75eff30aa55a083d4.bindPopup(popup_9269e63d6affb0d80f8c206fa8ec8b0d)
+        ;
+
+        
+    
+    
+            circle_marker_cb167244dfc36cc75eff30aa55a083d4.bindTooltip(
+                `<div>
+                     Sant Celoni
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_afe540b7400dc99dc19718e04387464e = L.circleMarker(
+                [41.7180602762477, 2.53904303823446],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.75, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 11.608469943943152, "stroke": true, "weight": 3}
+            ).addTo(map_ec2ff1ea96c68e54a91c986e31e22095);
+        
+    
+        var popup_ea6fd8efaeb3c726d346fd0d0701a2ca = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_86da965fc21d0e24109438a327f4479d = $(`<div id="html_86da965fc21d0e24109438a327f4479d" style="width: 100.0%; height: 100.0%;"><b>Gualba</b><br>Average delay: 13.57 min<br>Median delay: 11.00 min<br>Records: 2795</div>`)[0];
+                popup_ea6fd8efaeb3c726d346fd0d0701a2ca.setContent(html_86da965fc21d0e24109438a327f4479d);
+            
+        
+
+        circle_marker_afe540b7400dc99dc19718e04387464e.bindPopup(popup_ea6fd8efaeb3c726d346fd0d0701a2ca)
+        ;
+
+        
+    
+    
+            circle_marker_afe540b7400dc99dc19718e04387464e.bindTooltip(
+                `<div>
+                     Gualba
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_a33d1a9fff0b9276aa12643a153178d2 = L.circleMarker(
+                [41.7263725991584, 2.56816119028686],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.75, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 11.601372963255447, "stroke": true, "weight": 3}
+            ).addTo(map_ec2ff1ea96c68e54a91c986e31e22095);
+        
+    
+        var popup_91ccffd81ab598e1af3bb191b65772e6 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_ed3525b49756bb74d093c7e4ac8abce8 = $(`<div id="html_ed3525b49756bb74d093c7e4ac8abce8" style="width: 100.0%; height: 100.0%;"><b>Riells i Viabrea-Breda</b><br>Average delay: 13.60 min<br>Median delay: 11.00 min<br>Records: 2789</div>`)[0];
+                popup_91ccffd81ab598e1af3bb191b65772e6.setContent(html_ed3525b49756bb74d093c7e4ac8abce8);
+            
+        
+
+        circle_marker_a33d1a9fff0b9276aa12643a153178d2.bindPopup(popup_91ccffd81ab598e1af3bb191b65772e6)
+        ;
+
+        
+    
+    
+            circle_marker_a33d1a9fff0b9276aa12643a153178d2.bindTooltip(
+                `<div>
+                     Riells i Viabrea-Breda
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_000d8223df8429a90bad784504783c1d = L.circleMarker(
+                [41.7478870701868, 2.63141010779818],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.75, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 11.555055301063447, "stroke": true, "weight": 3}
+            ).addTo(map_ec2ff1ea96c68e54a91c986e31e22095);
+        
+    
+        var popup_ec683acdcce03ae7b4eefe72a360ddee = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_d3e72bc25c8a181bc1ba7f95e88380e1 = $(`<div id="html_d3e72bc25c8a181bc1ba7f95e88380e1" style="width: 100.0%; height: 100.0%;"><b>Hostalric</b><br>Average delay: 13.89 min<br>Median delay: 11.50 min<br>Records: 2750</div>`)[0];
+                popup_ec683acdcce03ae7b4eefe72a360ddee.setContent(html_d3e72bc25c8a181bc1ba7f95e88380e1);
+            
+        
+
+        circle_marker_000d8223df8429a90bad784504783c1d.bindPopup(popup_ec683acdcce03ae7b4eefe72a360ddee)
+        ;
+
+        
+    
+    
+            circle_marker_000d8223df8429a90bad784504783c1d.bindTooltip(
+                `<div>
+                     Hostalric
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_c634f23206f0060bf70156dfa9b6aa5b = L.circleMarker(
+                [41.6176578949707, 2.2944972737249],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.75, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 20, "stroke": true, "weight": 3}
+            ).addTo(map_ec2ff1ea96c68e54a91c986e31e22095);
+        
+    
+        var popup_53b3c036e1e8ceca17fdc2bd97bde373 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_08ecc98623787eb29b4da9443384f32e = $(`<div id="html_08ecc98623787eb29b4da9443384f32e" style="width: 100.0%; height: 100.0%;"><b>Les Franqueses-Granollers Nord</b><br>Average delay: 8.83 min<br>Median delay: 6.00 min<br>Records: 16904</div>`)[0];
+                popup_53b3c036e1e8ceca17fdc2bd97bde373.setContent(html_08ecc98623787eb29b4da9443384f32e);
+            
+        
+
+        circle_marker_c634f23206f0060bf70156dfa9b6aa5b.bindPopup(popup_53b3c036e1e8ceca17fdc2bd97bde373)
+        ;
+
+        
+    
+    
+            circle_marker_c634f23206f0060bf70156dfa9b6aa5b.bindTooltip(
+                `<div>
+                     Les Franqueses-Granollers Nord
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_1101dbf824491a8189137c9bdb7013bc = L.circleMarker(
+                [41.7724990136366, 2.67336035783649],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.75, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 11.064754735354102, "stroke": true, "weight": 3}
+            ).addTo(map_ec2ff1ea96c68e54a91c986e31e22095);
+        
+    
+        var popup_97d7de4e94b7dd619007f70e9642fb29 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_e2d7c78ac9ac7097771b75e5fdaa1cb3 = $(`<div id="html_e2d7c78ac9ac7097771b75e5fdaa1cb3" style="width: 100.0%; height: 100.0%;"><b>Maçanet-Massanes</b><br>Average delay: 14.65 min<br>Median delay: 13.00 min<br>Records: 2354</div>`)[0];
+                popup_97d7de4e94b7dd619007f70e9642fb29.setContent(html_e2d7c78ac9ac7097771b75e5fdaa1cb3);
+            
+        
+
+        circle_marker_1101dbf824491a8189137c9bdb7013bc.bindPopup(popup_97d7de4e94b7dd619007f70e9642fb29)
+        ;
+
+        
+    
+    
+            circle_marker_1101dbf824491a8189137c9bdb7013bc.bindTooltip(
+                `<div>
+                     Maçanet-Massanes
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_bfc1dafe90921951cc338cb38a786987 = L.circleMarker(
+                [41.3840101323238, 2.18634117242266],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.75, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 20, "stroke": true, "weight": 3}
+            ).addTo(map_ec2ff1ea96c68e54a91c986e31e22095);
+        
+    
+        var popup_281cb7cde7562b306fa018203821552a = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_b9f60de35f630c61959ca48e53eb502a = $(`<div id="html_b9f60de35f630c61959ca48e53eb502a" style="width: 100.0%; height: 100.0%;"><b>Barcelona-Estació de França</b><br>Average delay: 26.60 min<br>Median delay: 24.00 min<br>Records: 30963</div>`)[0];
+                popup_281cb7cde7562b306fa018203821552a.setContent(html_b9f60de35f630c61959ca48e53eb502a);
+            
+        
+
+        circle_marker_bfc1dafe90921951cc338cb38a786987.bindPopup(popup_281cb7cde7562b306fa018203821552a)
+        ;
+
+        
+    
+    
+            circle_marker_bfc1dafe90921951cc338cb38a786987.bindTooltip(
+                `<div>
+                     Barcelona-Estació de França
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+</script>
+</html>

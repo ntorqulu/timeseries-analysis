@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.0/css/all.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/python-visualization/folium/folium/templates/leaflet.awesome.rotate.min.css"/>
+    
+            <meta name="viewport" content="width=device-width,
+                initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+            <style>
+                #map_2cc30dd2d3c016e360efa8147e94d777 {
+                    position: relative;
+                    width: 100.0%;
+                    height: 100.0%;
+                    left: 0.0%;
+                    top: 0.0%;
+                }
+                .leaflet-container { font-size: 1rem; }
+            </style>
+
+            <style>html, body {
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 0;
+            }
+            </style>
+
+            <style>#map {
+                position:absolute;
+                top:0;
+                bottom:0;
+                right:0;
+                left:0;
+                }
+            </style>
+
+            <script>
+                L_NO_TOUCH = false;
+                L_DISABLE_3D = false;
+            </script>
+
+        
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
+</head>
+<body>
+    
+    <h3 align='center'>R2 segment delay map [outbound]</h3>
+    
+    <div style="
+        position: fixed;
+        bottom: 18px;
+        left: 18px;
+        z-index: 9999;
+        background: white;
+        border: 1px solid #bbb;
+        border-radius: 6px;
+        padding: 8px 10px;
+        font-size: 12px;
+        line-height: 1.4;
+    ">
+      Darker warm colors mean higher delay.<br>
+      Small white dots mark station positions.<br>
+      Segment geometry follows the canonical route order.
+    </div>
+    
+    
+            <div class="folium-map" id="map_2cc30dd2d3c016e360efa8147e94d777" ></div>
+        
+</body>
+<script>
+    
+    
+            var map_2cc30dd2d3c016e360efa8147e94d777 = L.map(
+                "map_2cc30dd2d3c016e360efa8147e94d777",
+                {
+                    center: [41.41798990412031, 2.148052853546535],
+                    crs: L.CRS.EPSG3857,
+                    ...{
+  "zoom": 9,
+  "zoomControl": true,
+  "preferCanvas": false,
+}
+
+                }
+            );
+
+            
+
+        
+    
+            var tile_layer_f8c64dd72cee090c42010cdb4ee501be = L.tileLayer(
+                "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+                {
+  "minZoom": 0,
+  "maxZoom": 20,
+  "maxNativeZoom": 20,
+  "noWrap": false,
+  "attribution": "\u0026copy; \u003ca href=\"https://www.openstreetmap.org/copyright\"\u003eOpenStreetMap\u003c/a\u003e contributors \u0026copy; \u003ca href=\"https://carto.com/attributions\"\u003eCARTO\u003c/a\u003e",
+  "subdomains": "abcd",
+  "detectRetina": false,
+  "tms": false,
+  "opacity": 1,
+}
+
+            );
+        
+    
+            tile_layer_f8c64dd72cee090c42010cdb4ee501be.addTo(map_2cc30dd2d3c016e360efa8147e94d777);
+        
+    
+            var poly_line_f4bd81674050103645cde428de1d1979 = L.polyline(
+                [[41.4104189272174, 2.18920138224746], [41.4356336089679, 2.19371257730036]],
+                {"bubblingMouseEvents": true, "color": "#316eedff", "dashArray": null, "dashOffset": null, "fill": false, "fillColor": "#316eedff", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "noClip": false, "opacity": 0.8, "smoothFactor": 1.0, "stroke": true, "weight": 5.471310991541957}
+            ).addTo(map_2cc30dd2d3c016e360efa8147e94d777);
+        
+    
+        var popup_12d2e8e3dec833ba9165b1e46a870c73 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_6abe9f29503dc391151dd812f211e7dc = $(`<div id="html_6abe9f29503dc391151dd812f211e7dc" style="width: 100.0%; height: 100.0%;"><b>Barcelona-El Clot -> Barcelona-Sant Andreu</b><br>Direction: outbound<br>Average delay: 6.00 min<br>Median delay: 0.00 min<br>Records: 1205</div>`)[0];
+                popup_12d2e8e3dec833ba9165b1e46a870c73.setContent(html_6abe9f29503dc391151dd812f211e7dc);
+            
+        
+
+        poly_line_f4bd81674050103645cde428de1d1979.bindPopup(popup_12d2e8e3dec833ba9165b1e46a870c73)
+        ;
+
+        
+    
+    
+            poly_line_f4bd81674050103645cde428de1d1979.bindTooltip(
+                `<div>
+                     Barcelona-El Clot -> Barcelona-Sant Andreu
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var poly_line_d9103fdfa5f8dc28c91ef48e22b5749f = L.polyline(
+                [[41.3935212963419, 2.16631624197984], [41.4104189272174, 2.18920138224746]],
+                {"bubblingMouseEvents": true, "color": "#2d6aedff", "dashArray": null, "dashOffset": null, "fill": false, "fillColor": "#2d6aedff", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "noClip": false, "opacity": 0.8, "smoothFactor": 1.0, "stroke": true, "weight": 5.475629439396553}
+            ).addTo(map_2cc30dd2d3c016e360efa8147e94d777);
+        
+    
+        var popup_a0937e35c9539c5b0546bef8512167bc = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_48ca49dd90c5b1b9af0bf51ed0186a8c = $(`<div id="html_48ca49dd90c5b1b9af0bf51ed0186a8c" style="width: 100.0%; height: 100.0%;"><b>Barcelona-Passeig de Gràcia -> Barcelona-El Clot</b><br>Direction: outbound<br>Average delay: 5.88 min<br>Median delay: 0.00 min<br>Records: 1208</div>`)[0];
+                popup_a0937e35c9539c5b0546bef8512167bc.setContent(html_48ca49dd90c5b1b9af0bf51ed0186a8c);
+            
+        
+
+        poly_line_d9103fdfa5f8dc28c91ef48e22b5749f.bindPopup(popup_a0937e35c9539c5b0546bef8512167bc)
+        ;
+
+        
+    
+    
+            poly_line_d9103fdfa5f8dc28c91ef48e22b5749f.bindTooltip(
+                `<div>
+                     Barcelona-Passeig de Gràcia -> Barcelona-El Clot
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var poly_line_144ae8c2797e3d91efc0e5b3dea86af3 = L.polyline(
+                [[41.4356336089679, 2.19371257730036], [41.4840805752139, 2.18826577891092]],
+                {"bubblingMouseEvents": true, "color": "#2563ebff", "dashArray": null, "dashOffset": null, "fill": false, "fillColor": "#2563ebff", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "noClip": false, "opacity": 0.8, "smoothFactor": 1.0, "stroke": true, "weight": 5.461213659975356}
+            ).addTo(map_2cc30dd2d3c016e360efa8147e94d777);
+        
+    
+        var popup_da6cef2bea554d15bf3e2146f3805ec8 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_1a05557e39befe489915caa372386c5e = $(`<div id="html_1a05557e39befe489915caa372386c5e" style="width: 100.0%; height: 100.0%;"><b>Barcelona-Sant Andreu -> Montcada i Reixac</b><br>Direction: outbound<br>Average delay: 5.22 min<br>Median delay: 0.00 min<br>Records: 1198</div>`)[0];
+                popup_da6cef2bea554d15bf3e2146f3805ec8.setContent(html_1a05557e39befe489915caa372386c5e);
+            
+        
+
+        poly_line_144ae8c2797e3d91efc0e5b3dea86af3.bindPopup(popup_da6cef2bea554d15bf3e2146f3805ec8)
+        ;
+
+        
+    
+    
+            poly_line_144ae8c2797e3d91efc0e5b3dea86af3.bindTooltip(
+                `<div>
+                     Barcelona-Sant Andreu -> Montcada i Reixac
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var poly_line_9fe8fda0357617f653d8ca736f01e6f7 = L.polyline(
+                [[41.3790789811861, 2.14028390325908], [41.3935212963419, 2.16631624197984]],
+                {"bubblingMouseEvents": true, "color": "#e65817ff", "dashArray": null, "dashOffset": null, "fill": false, "fillColor": "#e65817ff", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "noClip": false, "opacity": 0.8, "smoothFactor": 1.0, "stroke": true, "weight": 6}
+            ).addTo(map_2cc30dd2d3c016e360efa8147e94d777);
+        
+    
+        var popup_fd6a13db14ed847291304258c57eb40d = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_bc669b69fa59559ae3f0e5e5d356ab95 = $(`<div id="html_bc669b69fa59559ae3f0e5e5d356ab95" style="width: 100.0%; height: 100.0%;"><b>Barcelona-Sants -> Barcelona-Passeig de Gràcia</b><br>Direction: outbound<br>Average delay: 17.12 min<br>Median delay: 0.00 min<br>Records: 2851</div>`)[0];
+                popup_fd6a13db14ed847291304258c57eb40d.setContent(html_bc669b69fa59559ae3f0e5e5d356ab95);
+            
+        
+
+        poly_line_9fe8fda0357617f653d8ca736f01e6f7.bindPopup(popup_fd6a13db14ed847291304258c57eb40d)
+        ;
+
+        
+    
+    
+            poly_line_9fe8fda0357617f653d8ca736f01e6f7.bindTooltip(
+                `<div>
+                     Barcelona-Sants -> Barcelona-Passeig de Gràcia
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var poly_line_fbb872899c44203e69aaa51ca6960e3a = L.polyline(
+                [[41.3538317321834, 2.11537383047956], [41.3790789811861, 2.14028390325908]],
+                {"bubblingMouseEvents": true, "color": "#fbac4fff", "dashArray": null, "dashOffset": null, "fill": false, "fillColor": "#fbac4fff", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "noClip": false, "opacity": 0.8, "smoothFactor": 1.0, "stroke": true, "weight": 6}
+            ).addTo(map_2cc30dd2d3c016e360efa8147e94d777);
+        
+    
+        var popup_8097b8ceb38661d52a17a6f04eebbcc5 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_d1869fd54b5e7bb783189d6eaaeef96e = $(`<div id="html_d1869fd54b5e7bb783189d6eaaeef96e" style="width: 100.0%; height: 100.0%;"><b>Bellvitge | Gornal -> Barcelona-Sants</b><br>Direction: outbound<br>Average delay: 14.33 min<br>Median delay: 0.00 min<br>Records: 2742</div>`)[0];
+                popup_8097b8ceb38661d52a17a6f04eebbcc5.setContent(html_d1869fd54b5e7bb783189d6eaaeef96e);
+            
+        
+
+        poly_line_fbb872899c44203e69aaa51ca6960e3a.bindPopup(popup_8097b8ceb38661d52a17a6f04eebbcc5)
+        ;
+
+        
+    
+    
+            poly_line_fbb872899c44203e69aaa51ca6960e3a.bindTooltip(
+                `<div>
+                     Bellvitge | Gornal -> Barcelona-Sants
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var poly_line_73cdfe120454586734f3a1dea8691522 = L.polyline(
+                [[41.2787348008295, 1.97929772549262], [41.3030397336087, 2.0102813744918]],
+                {"bubblingMouseEvents": true, "color": "#f56c16ff", "dashArray": null, "dashOffset": null, "fill": false, "fillColor": "#f56c16ff", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "noClip": false, "opacity": 0.8, "smoothFactor": 1.0, "stroke": true, "weight": 6}
+            ).addTo(map_2cc30dd2d3c016e360efa8147e94d777);
+        
+    
+        var popup_0feb4987c5572e9fda88d3e1c6e5f6ca = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_7fe485357c6ed5b56ab318338dcd14fa = $(`<div id="html_7fe485357c6ed5b56ab318338dcd14fa" style="width: 100.0%; height: 100.0%;"><b>Castelldefels -> Gavà</b><br>Direction: outbound<br>Average delay: 16.30 min<br>Median delay: 0.00 min<br>Records: 1930</div>`)[0];
+                popup_0feb4987c5572e9fda88d3e1c6e5f6ca.setContent(html_7fe485357c6ed5b56ab318338dcd14fa);
+            
+        
+
+        poly_line_73cdfe120454586734f3a1dea8691522.bindPopup(popup_0feb4987c5572e9fda88d3e1c6e5f6ca)
+        ;
+
+        
+    
+    
+            poly_line_73cdfe120454586734f3a1dea8691522.bindTooltip(
+                `<div>
+                     Castelldefels -> Gavà
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var poly_line_4a2214e56b4f4cfdc4dfd0012d4d2f93 = L.polyline(
+                [[41.3312044968392, 2.09102621935777], [41.3538317321834, 2.11537383047956]],
+                {"bubblingMouseEvents": true, "color": "#be221bff", "dashArray": null, "dashOffset": null, "fill": false, "fillColor": "#be221bff", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "noClip": false, "opacity": 0.8, "smoothFactor": 1.0, "stroke": true, "weight": 6}
+            ).addTo(map_2cc30dd2d3c016e360efa8147e94d777);
+        
+    
+        var popup_24fd2203f2e89736dddca957e5e6f76b = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_4a69acc1e333dfa8aae0fc4db9d8e8a6 = $(`<div id="html_4a69acc1e333dfa8aae0fc4db9d8e8a6" style="width: 100.0%; height: 100.0%;"><b>El Prat de Llobregat -> Bellvitge | Gornal</b><br>Direction: outbound<br>Average delay: 19.25 min<br>Median delay: 0.00 min<br>Records: 2893</div>`)[0];
+                popup_24fd2203f2e89736dddca957e5e6f76b.setContent(html_4a69acc1e333dfa8aae0fc4db9d8e8a6);
+            
+        
+
+        poly_line_4a2214e56b4f4cfdc4dfd0012d4d2f93.bindPopup(popup_24fd2203f2e89736dddca957e5e6f76b)
+        ;
+
+        
+    
+    
+            poly_line_4a2214e56b4f4cfdc4dfd0012d4d2f93.bindTooltip(
+                `<div>
+                     El Prat de Llobregat -> Bellvitge | Gornal
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var poly_line_609d04ef8a44795481bc81cded925752 = L.polyline(
+                [[41.3030397336087, 2.0102813744918], [41.309325489716, 2.02745481244271]],
+                {"bubblingMouseEvents": true, "color": "#b91c1cff", "dashArray": null, "dashOffset": null, "fill": false, "fillColor": "#b91c1cff", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "noClip": false, "opacity": 0.8, "smoothFactor": 1.0, "stroke": true, "weight": 6}
+            ).addTo(map_2cc30dd2d3c016e360efa8147e94d777);
+        
+    
+        var popup_c7e4798796e4ea89958f57d2c91a325e = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_3b7db8ff8eeece6cbd9bb1013ca1fdf2 = $(`<div id="html_3b7db8ff8eeece6cbd9bb1013ca1fdf2" style="width: 100.0%; height: 100.0%;"><b>Gavà -> Viladecans</b><br>Direction: outbound<br>Average delay: 19.67 min<br>Median delay: 0.00 min<br>Records: 2221</div>`)[0];
+                popup_c7e4798796e4ea89958f57d2c91a325e.setContent(html_3b7db8ff8eeece6cbd9bb1013ca1fdf2);
+            
+        
+
+        poly_line_609d04ef8a44795481bc81cded925752.bindPopup(popup_c7e4798796e4ea89958f57d2c91a325e)
+        ;
+
+        
+    
+    
+            poly_line_609d04ef8a44795481bc81cded925752.bindTooltip(
+                `<div>
+                     Gavà -> Viladecans
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var poly_line_b96e6d7064ac5abf5437712468da77ca = L.polyline(
+                [[41.5105097453881, 2.19991794690889], [41.5329529425385, 2.21736712534934]],
+                {"bubblingMouseEvents": true, "color": "#4681f1ff", "dashArray": null, "dashOffset": null, "fill": false, "fillColor": "#4681f1ff", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "noClip": false, "opacity": 0.8, "smoothFactor": 1.0, "stroke": true, "weight": 5.937003937005906}
+            ).addTo(map_2cc30dd2d3c016e360efa8147e94d777);
+        
+    
+        var popup_ad1a8550a2a4626d1b517eb1706794b0 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_a222e989718dc0d8719f552472ca11fc = $(`<div id="html_a222e989718dc0d8719f552472ca11fc" style="width: 100.0%; height: 100.0%;"><b>La Llagosta -> Mollet-Sant Fost</b><br>Direction: outbound<br>Average delay: 6.68 min<br>Median delay: 3.00 min<br>Records: 1550</div>`)[0];
+                popup_ad1a8550a2a4626d1b517eb1706794b0.setContent(html_a222e989718dc0d8719f552472ca11fc);
+            
+        
+
+        poly_line_b96e6d7064ac5abf5437712468da77ca.bindPopup(popup_ad1a8550a2a4626d1b517eb1706794b0)
+        ;
+
+        
+    
+    
+            poly_line_b96e6d7064ac5abf5437712468da77ca.bindTooltip(
+                `<div>
+                     La Llagosta -> Mollet-Sant Fost
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var poly_line_8f463963074bb80b18dc203920a514f2 = L.polyline(
+                [[41.5329529425385, 2.21736712534934], [41.551149, 2.250041]],
+                {"bubblingMouseEvents": true, "color": "#bdd2d0ff", "dashArray": null, "dashOffset": null, "fill": false, "fillColor": "#bdd2d0ff", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "noClip": false, "opacity": 0.8, "smoothFactor": 1.0, "stroke": true, "weight": 6}
+            ).addTo(map_2cc30dd2d3c016e360efa8147e94d777);
+        
+    
+        var popup_9bd339f7b512f26d66f206516ec4cf53 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_37d6bf9388cb63a251f1fe0448ad84e2 = $(`<div id="html_37d6bf9388cb63a251f1fe0448ad84e2" style="width: 100.0%; height: 100.0%;"><b>Mollet-Sant Fost -> Montmeló</b><br>Direction: outbound<br>Average delay: 10.46 min<br>Median delay: 4.00 min<br>Records: 1615</div>`)[0];
+                popup_9bd339f7b512f26d66f206516ec4cf53.setContent(html_37d6bf9388cb63a251f1fe0448ad84e2);
+            
+        
+
+        poly_line_8f463963074bb80b18dc203920a514f2.bindPopup(popup_9bd339f7b512f26d66f206516ec4cf53)
+        ;
+
+        
+    
+    
+            poly_line_8f463963074bb80b18dc203920a514f2.bindTooltip(
+                `<div>
+                     Mollet-Sant Fost -> Montmeló
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var poly_line_25852d6f09deeee90676153a7acc3128 = L.polyline(
+                [[41.4840805752139, 2.18826577891092], [41.5105097453881, 2.19991794690889]],
+                {"bubblingMouseEvents": true, "color": "#4c86f2ff", "dashArray": null, "dashOffset": null, "fill": false, "fillColor": "#4c86f2ff", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "noClip": false, "opacity": 0.8, "smoothFactor": 1.0, "stroke": true, "weight": 5.844476557348218}
+            ).addTo(map_2cc30dd2d3c016e360efa8147e94d777);
+        
+    
+        var popup_33dccd0f4f4738dae993be45cf42f316 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_b73ad4e391424b3c8f56f16308b5a3eb = $(`<div id="html_b73ad4e391424b3c8f56f16308b5a3eb" style="width: 100.0%; height: 100.0%;"><b>Montcada i Reixac -> La Llagosta</b><br>Direction: outbound<br>Average delay: 6.86 min<br>Median delay: 1.00 min<br>Records: 1478</div>`)[0];
+                popup_33dccd0f4f4738dae993be45cf42f316.setContent(html_b73ad4e391424b3c8f56f16308b5a3eb);
+            
+        
+
+        poly_line_25852d6f09deeee90676153a7acc3128.bindPopup(popup_33dccd0f4f4738dae993be45cf42f316)
+        ;
+
+        
+    
+    
+            poly_line_25852d6f09deeee90676153a7acc3128.bindTooltip(
+                `<div>
+                     Montcada i Reixac -> La Llagosta
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var poly_line_f70a467f5789c63a7a4f029af3131ca9 = L.polyline(
+                [[41.551149, 2.250041], [41.5995096478962, 2.29159208126183]],
+                {"bubblingMouseEvents": true, "color": "#dbdcafff", "dashArray": null, "dashOffset": null, "fill": false, "fillColor": "#dbdcafff", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "noClip": false, "opacity": 0.8, "smoothFactor": 1.0, "stroke": true, "weight": 5.691882988394946}
+            ).addTo(map_2cc30dd2d3c016e360efa8147e94d777);
+        
+    
+        var popup_190f231d65856b4f0872853fc823bb91 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_cd9462ffaf7907dbff9b99acc972b628 = $(`<div id="html_cd9462ffaf7907dbff9b99acc972b628" style="width: 100.0%; height: 100.0%;"><b>Montmeló -> Granollers Centre</b><br>Direction: outbound<br>Average delay: 11.44 min<br>Median delay: 4.00 min<br>Records: 1363</div>`)[0];
+                popup_190f231d65856b4f0872853fc823bb91.setContent(html_cd9462ffaf7907dbff9b99acc972b628);
+            
+        
+
+        poly_line_f70a467f5789c63a7a4f029af3131ca9.bindPopup(popup_190f231d65856b4f0872853fc823bb91)
+        ;
+
+        
+    
+    
+            poly_line_f70a467f5789c63a7a4f029af3131ca9.bindTooltip(
+                `<div>
+                     Montmeló -> Granollers Centre
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var poly_line_c8b50958645b27bba7a351fcb192e517 = L.polyline(
+                [[41.309325489716, 2.02745481244271], [41.3312044968392, 2.09102621935777]],
+                {"bubblingMouseEvents": true, "color": "#bb1e1bff", "dashArray": null, "dashOffset": null, "fill": false, "fillColor": "#bb1e1bff", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "noClip": false, "opacity": 0.8, "smoothFactor": 1.0, "stroke": true, "weight": 6}
+            ).addTo(map_2cc30dd2d3c016e360efa8147e94d777);
+        
+    
+        var popup_3bfe6c7b91ca9474e10d2f909e152590 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_cc5792d6671bd829f3af7095829c968a = $(`<div id="html_cc5792d6671bd829f3af7095829c968a" style="width: 100.0%; height: 100.0%;"><b>Viladecans -> El Prat de Llobregat</b><br>Direction: outbound<br>Average delay: 19.41 min<br>Median delay: 0.00 min<br>Records: 2085</div>`)[0];
+                popup_3bfe6c7b91ca9474e10d2f909e152590.setContent(html_cc5792d6671bd829f3af7095829c968a);
+            
+        
+
+        poly_line_c8b50958645b27bba7a351fcb192e517.bindPopup(popup_3bfe6c7b91ca9474e10d2f909e152590)
+        ;
+
+        
+    
+    
+            poly_line_c8b50958645b27bba7a351fcb192e517.bindTooltip(
+                `<div>
+                     Viladecans -> El Prat de Llobregat
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_7f1cd628a234fa4a68c47c8f1b66b517 = L.circleMarker(
+                [41.4104189272174, 2.18920138224746],
+                {"bubblingMouseEvents": true, "color": "#374151", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "white", "fillOpacity": 0.9, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 2.5, "stroke": true, "weight": 1}
+            ).addTo(map_2cc30dd2d3c016e360efa8147e94d777);
+        
+    
+            circle_marker_7f1cd628a234fa4a68c47c8f1b66b517.bindTooltip(
+                `<div>
+                     Barcelona-El Clot
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_57008b44834b98431a84f2e02786ef47 = L.circleMarker(
+                [41.3935212963419, 2.16631624197984],
+                {"bubblingMouseEvents": true, "color": "#374151", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "white", "fillOpacity": 0.9, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 2.5, "stroke": true, "weight": 1}
+            ).addTo(map_2cc30dd2d3c016e360efa8147e94d777);
+        
+    
+            circle_marker_57008b44834b98431a84f2e02786ef47.bindTooltip(
+                `<div>
+                     Barcelona-Passeig de Gràcia
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_ea4e79d18da546a65cf79098f386e59c = L.circleMarker(
+                [41.4356336089679, 2.19371257730036],
+                {"bubblingMouseEvents": true, "color": "#374151", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "white", "fillOpacity": 0.9, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 2.5, "stroke": true, "weight": 1}
+            ).addTo(map_2cc30dd2d3c016e360efa8147e94d777);
+        
+    
+            circle_marker_ea4e79d18da546a65cf79098f386e59c.bindTooltip(
+                `<div>
+                     Barcelona-Sant Andreu
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_333f18102ceb6bc5efeb11d699ded903 = L.circleMarker(
+                [41.3790789811861, 2.14028390325908],
+                {"bubblingMouseEvents": true, "color": "#374151", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "white", "fillOpacity": 0.9, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 2.5, "stroke": true, "weight": 1}
+            ).addTo(map_2cc30dd2d3c016e360efa8147e94d777);
+        
+    
+            circle_marker_333f18102ceb6bc5efeb11d699ded903.bindTooltip(
+                `<div>
+                     Barcelona-Sants
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_4091af6b351bfe022a9d9fd3e7a22958 = L.circleMarker(
+                [41.3538317321834, 2.11537383047956],
+                {"bubblingMouseEvents": true, "color": "#374151", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "white", "fillOpacity": 0.9, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 2.5, "stroke": true, "weight": 1}
+            ).addTo(map_2cc30dd2d3c016e360efa8147e94d777);
+        
+    
+            circle_marker_4091af6b351bfe022a9d9fd3e7a22958.bindTooltip(
+                `<div>
+                     Bellvitge | Gornal
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_86c29ddecd7073264db2d31280b43a25 = L.circleMarker(
+                [41.2787348008295, 1.97929772549262],
+                {"bubblingMouseEvents": true, "color": "#374151", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "white", "fillOpacity": 0.9, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 2.5, "stroke": true, "weight": 1}
+            ).addTo(map_2cc30dd2d3c016e360efa8147e94d777);
+        
+    
+            circle_marker_86c29ddecd7073264db2d31280b43a25.bindTooltip(
+                `<div>
+                     Castelldefels
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_ed3a79c9c63cd5adf1f3790053029823 = L.circleMarker(
+                [41.3312044968392, 2.09102621935777],
+                {"bubblingMouseEvents": true, "color": "#374151", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "white", "fillOpacity": 0.9, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 2.5, "stroke": true, "weight": 1}
+            ).addTo(map_2cc30dd2d3c016e360efa8147e94d777);
+        
+    
+            circle_marker_ed3a79c9c63cd5adf1f3790053029823.bindTooltip(
+                `<div>
+                     El Prat de Llobregat
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_38e9038cf5a135a6bbac8187e9237957 = L.circleMarker(
+                [41.3030397336087, 2.0102813744918],
+                {"bubblingMouseEvents": true, "color": "#374151", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "white", "fillOpacity": 0.9, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 2.5, "stroke": true, "weight": 1}
+            ).addTo(map_2cc30dd2d3c016e360efa8147e94d777);
+        
+    
+            circle_marker_38e9038cf5a135a6bbac8187e9237957.bindTooltip(
+                `<div>
+                     Gavà
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_5125dc79e3789b02024373fd6c41201c = L.circleMarker(
+                [41.5105097453881, 2.19991794690889],
+                {"bubblingMouseEvents": true, "color": "#374151", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "white", "fillOpacity": 0.9, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 2.5, "stroke": true, "weight": 1}
+            ).addTo(map_2cc30dd2d3c016e360efa8147e94d777);
+        
+    
+            circle_marker_5125dc79e3789b02024373fd6c41201c.bindTooltip(
+                `<div>
+                     La Llagosta
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_0b81190dde9587be4bbca0fcaadbb312 = L.circleMarker(
+                [41.5329529425385, 2.21736712534934],
+                {"bubblingMouseEvents": true, "color": "#374151", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "white", "fillOpacity": 0.9, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 2.5, "stroke": true, "weight": 1}
+            ).addTo(map_2cc30dd2d3c016e360efa8147e94d777);
+        
+    
+            circle_marker_0b81190dde9587be4bbca0fcaadbb312.bindTooltip(
+                `<div>
+                     Mollet-Sant Fost
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_f0d5f0cf5acdadf9609276fb9ddf79fe = L.circleMarker(
+                [41.4840805752139, 2.18826577891092],
+                {"bubblingMouseEvents": true, "color": "#374151", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "white", "fillOpacity": 0.9, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 2.5, "stroke": true, "weight": 1}
+            ).addTo(map_2cc30dd2d3c016e360efa8147e94d777);
+        
+    
+            circle_marker_f0d5f0cf5acdadf9609276fb9ddf79fe.bindTooltip(
+                `<div>
+                     Montcada i Reixac
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_767f6cc7b8da99a6e613f780428ee3a0 = L.circleMarker(
+                [41.551149, 2.250041],
+                {"bubblingMouseEvents": true, "color": "#374151", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "white", "fillOpacity": 0.9, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 2.5, "stroke": true, "weight": 1}
+            ).addTo(map_2cc30dd2d3c016e360efa8147e94d777);
+        
+    
+            circle_marker_767f6cc7b8da99a6e613f780428ee3a0.bindTooltip(
+                `<div>
+                     Montmeló
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_4c7609e03559655dcc270c3e9bcbdd33 = L.circleMarker(
+                [41.309325489716, 2.02745481244271],
+                {"bubblingMouseEvents": true, "color": "#374151", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "white", "fillOpacity": 0.9, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 2.5, "stroke": true, "weight": 1}
+            ).addTo(map_2cc30dd2d3c016e360efa8147e94d777);
+        
+    
+            circle_marker_4c7609e03559655dcc270c3e9bcbdd33.bindTooltip(
+                `<div>
+                     Viladecans
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_b1d72c0a314dec06cd3c65b011599f87 = L.circleMarker(
+                [41.5995096478962, 2.29159208126183],
+                {"bubblingMouseEvents": true, "color": "#374151", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "white", "fillOpacity": 0.9, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 2.5, "stroke": true, "weight": 1}
+            ).addTo(map_2cc30dd2d3c016e360efa8147e94d777);
+        
+    
+            circle_marker_b1d72c0a314dec06cd3c65b011599f87.bindTooltip(
+                `<div>
+                     Granollers Centre
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+    var color_map_6bdf6ae232e5507f5be22e2f7ba9834c = {};
+
+    
+    color_map_6bdf6ae232e5507f5be22e2f7ba9834c.color = d3.scale.threshold()
+              .domain([5.615475848268085, 5.643329098759549, 5.671182349251011, 5.699035599742475, 5.726888850233937, 5.754742100725401, 5.782595351216863, 5.810448601708327, 5.83830185219979, 5.866155102691253, 5.894008353182716, 5.921861603674179, 5.949714854165642, 5.977568104657106, 6.0054213551485685, 6.033274605640032, 6.0611278561314945, 6.088981106622958, 6.116834357114421, 6.144687607605884, 6.1725408580973475, 6.20039410858881, 6.228247359080274, 6.256100609571736, 6.2839538600632, 6.311807110554662, 6.339660361046126, 6.367513611537589, 6.395366862029052, 6.423220112520515, 6.451073363011978, 6.478926613503441, 6.506779863994904, 6.534633114486367, 6.562486364977831, 6.5903396154692935, 6.618192865960757, 6.6460461164522195, 6.673899366943683, 6.701752617435146, 6.729605867926609, 6.757459118418073, 6.785312368909535, 6.813165619400999, 6.841018869892462, 6.868872120383925, 6.896725370875388, 6.924578621366851, 6.952431871858314, 6.980285122349777, 7.00813837284124, 7.035991623332704, 7.063844873824166, 7.09169812431563, 7.119551374807092, 7.147404625298556, 7.1752578757900185, 7.203111126281482, 7.2309643767729455, 7.258817627264408, 7.2866708777558715, 7.314524128247334, 7.342377378738798, 7.37023062923026, 7.398083879721724, 7.425937130213187, 7.45379038070465, 7.481643631196113, 7.509496881687576, 7.537350132179039, 7.565203382670502, 7.593056633161965, 7.620909883653429, 7.648763134144891, 7.676616384636354, 7.704469635127818, 7.732322885619281, 7.7601761361107435, 7.788029386602207, 7.8158826370936705, 7.843735887585133, 7.8715891380765965, 7.899442388568059, 7.927295639059523, 7.955148889550985, 7.983002140042449, 8.010855390533912, 8.038708641025375, 8.066561891516837, 8.094415142008302, 8.122268392499764, 8.150121642991227, 8.177974893482691, 8.205828143974154, 8.233681394465616, 8.26153464495708, 8.289387895448543, 8.317241145940006, 8.34509439643147, 8.372947646922931, 8.400800897414396, 8.428654147905858, 8.45650739839732, 8.484360648888785, 8.512213899380248, 8.54006714987171, 8.567920400363175, 8.595773650854637, 8.6236269013461, 8.651480151837564, 8.679333402329027, 8.70718665282049, 8.735039903311954, 8.762893153803414, 8.790746404294879, 8.818599654786341, 8.846452905277804, 8.874306155769268, 8.902159406260731, 8.930012656752194, 8.957865907243658, 8.98571915773512, 9.013572408226583, 9.041425658718047, 9.06927890920951, 9.097132159700973, 9.124985410192437, 9.152838660683898, 9.180691911175362, 9.208545161666825, 9.236398412158287, 9.264251662649752, 9.292104913141214, 9.319958163632677, 9.347811414124141, 9.375664664615604, 9.403517915107066, 9.43137116559853, 9.459224416089993, 9.487077666581456, 9.51493091707292, 9.542784167564381, 9.570637418055846, 9.598490668547308, 9.62634391903877, 9.654197169530235, 9.682050420021698, 9.70990367051316, 9.737756921004625, 9.765610171496087, 9.79346342198755, 9.821316672479014, 9.849169922970475, 9.87702317346194, 9.904876423953404, 9.932729674444866, 9.960582924936329, 9.988436175427791, 10.016289425919254, 10.044142676410718, 10.071995926902181, 10.099849177393644, 10.127702427885108, 10.15555567837657, 10.183408928868033, 10.211262179359498, 10.23911542985096, 10.266968680342423, 10.294821930833885, 10.322675181325348, 10.350528431816812, 10.378381682308277, 10.40623493279974, 10.434088183291202, 10.461941433782664, 10.489794684274127, 10.517647934765591, 10.545501185257054, 10.573354435748517, 10.60120768623998, 10.629060936731443, 10.656914187222906, 10.68476743771437, 10.712620688205833, 10.740473938697296, 10.768327189188758, 10.79618043968022, 10.824033690171685, 10.85188694066315, 10.87974019115461, 10.907593441646075, 10.935446692137537, 10.963299942629, 10.991153193120464, 11.019006443611927, 11.04685969410339, 11.074712944594854, 11.102566195086315, 11.130419445577779, 11.158272696069243, 11.186125946560706, 11.213979197052169, 11.241832447543631, 11.269685698035094, 11.297538948526558, 11.32539219901802, 11.353245449509483, 11.381098700000948, 11.40895195049241, 11.436805200983873, 11.464658451475337, 11.4925117019668, 11.520364952458262, 11.548218202949727, 11.576071453441187, 11.603924703932652, 11.631777954424116, 11.659631204915577, 11.687484455407041, 11.715337705898506, 11.743190956389967, 11.771044206881431, 11.798897457372894, 11.826750707864356, 11.85460395835582, 11.882457208847281, 11.910310459338746, 11.93816370983021, 11.966016960321673, 11.993870210813135, 12.0217234613046, 12.04957671179606, 12.077429962287525, 12.105283212778987, 12.13313646327045, 12.160989713761914, 12.188842964253379, 12.21669621474484, 12.244549465236304, 12.272402715727766, 12.300255966219229, 12.328109216710693, 12.355962467202154, 12.383815717693619, 12.411668968185083, 12.439522218676544, 12.467375469168008, 12.495228719659472, 12.523081970150933, 12.550935220642398, 12.57878847113386, 12.606641721625323, 12.634494972116787, 12.662348222608252, 12.690201473099712, 12.718054723591177, 12.74590797408264, 12.773761224574102, 12.801614475065566, 12.829467725557027, 12.857320976048491, 12.885174226539956, 12.913027477031417, 12.940880727522881, 12.968733978014345, 12.996587228505806, 13.02444047899727, 13.052293729488733, 13.080146979980196, 13.10800023047166, 13.135853480963123, 13.163706731454585, 13.19155998194605, 13.219413232437512, 13.247266482928975, 13.27511973342044, 13.3029729839119, 13.330826234403364, 13.358679484894827, 13.38653273538629, 13.414385985877754, 13.442239236369218, 13.470092486860679, 13.497945737352143, 13.525798987843606, 13.553652238335069, 13.581505488826533, 13.609358739317996, 13.637211989809458, 13.66506524030092, 13.692918490792385, 13.720771741283848, 13.74862499177531, 13.776478242266773, 13.804331492758237, 13.8321847432497, 13.860037993741162, 13.887891244232627, 13.91574449472409, 13.943597745215554, 13.971450995707016, 13.999304246198479, 14.027157496689941, 14.055010747181404, 14.082863997672867, 14.110717248164331, 14.138570498655794, 14.166423749147258, 14.19427699963872, 14.222130250130183, 14.249983500621648, 14.27783675111311, 14.305690001604573, 14.333543252096035, 14.361396502587498, 14.389249753078962, 14.417103003570425, 14.444956254061887, 14.472809504553352, 14.500662755044814, 14.528516005536277, 14.556369256027741, 14.584222506519204, 14.612075757010668, 14.63992900750213, 14.667782257993592, 14.695635508485056, 14.723488758976519, 14.751342009467981, 14.779195259959446, 14.807048510450908, 14.834901760942373, 14.862755011433835, 14.890608261925298, 14.918461512416762, 14.946314762908225, 14.974168013399686, 15.00202126389115, 15.029874514382612, 15.057727764874077, 15.08558101536554, 15.113434265857002, 15.141287516348466, 15.169140766839929, 15.196994017331393, 15.224847267822856, 15.252700518314319, 15.280553768805783, 15.308407019297244, 15.336260269788706, 15.36411352028017, 15.391966770771633, 15.419820021263098, 15.44767327175456, 15.475526522246023, 15.503379772737487, 15.53123302322895, 15.559086273720412, 15.586939524211877, 15.614792774703337, 15.642646025194802, 15.670499275686264, 15.698352526177727, 15.726205776669191, 15.754059027160654, 15.781912277652117, 15.809765528143581, 15.837618778635044, 15.865472029126508, 15.89332527961797, 15.921178530109431, 15.949031780600896, 15.976885031092358, 16.00473828158382, 16.032591532075287, 16.060444782566748, 16.088298033058212, 16.116151283549677, 16.144004534041137, 16.1718577845326, 16.199711035024066, 16.227564285515527, 16.255417536006988, 16.283270786498452, 16.311124036989916, 16.338977287481377, 16.36683053797284, 16.394683788464306, 16.422537038955767, 16.45039028944723, 16.478243539938696, 16.506096790430156, 16.533950040921624, 16.561803291413085, 16.589656541904546, 16.61750979239601, 16.645363042887475, 16.673216293378935, 16.7010695438704, 16.728922794361864, 16.756776044853325, 16.78462929534479, 16.812482545836254, 16.840335796327714, 16.868189046819175, 16.89604229731064, 16.923895547802104, 16.951748798293565, 16.979602048785033, 17.007455299276494, 17.035308549767954, 17.063161800259422, 17.091015050750883, 17.118868301242344, 17.146721551733812, 17.174574802225273, 17.202428052716733, 17.230281303208198, 17.258134553699662, 17.285987804191123, 17.313841054682587, 17.34169430517405, 17.369547555665513, 17.397400806156977, 17.42525405664844, 17.453107307139902, 17.480960557631366, 17.50881380812283, 17.53666705861429, 17.564520309105752, 17.59237355959722, 17.62022681008868, 17.648080060580146, 17.67593331107161, 17.70378656156307, 17.731639812054535, 17.759493062546, 17.78734631303746, 17.815199563528925, 17.843052814020385, 17.87090606451185, 17.89875931500331, 17.926612565494775, 17.95446581598624, 17.9823190664777, 18.010172316969168, 18.03802556746063, 18.06587881795209, 18.093732068443558, 18.12158531893502, 18.14943856942648, 18.177291819917944, 18.205145070409408, 18.23299832090087, 18.260851571392333, 18.288704821883798, 18.31655807237526, 18.344411322866723, 18.372264573358187, 18.400117823849648, 18.427971074341112, 18.455824324832577, 18.483677575324037, 18.5115308258155, 18.539384076306966, 18.567237326798427, 18.595090577289888, 18.622943827781356, 18.650797078272817, 18.67865032876428, 18.706503579255745, 18.734356829747206, 18.76221008023867, 18.79006333073013, 18.817916581221596, 18.845769831713056, 18.87362308220452, 18.901476332695985, 18.929329583187446, 18.95718283367891, 18.985036084170375, 19.012889334661836, 19.0407425851533, 19.068595835644764, 19.096449086136225, 19.12430233662769, 19.152155587119154, 19.180008837610615, 19.20786208810208, 19.235715338593543, 19.263568589085004, 19.29142183957647, 19.319275090067933, 19.347128340559394, 19.374981591050858, 19.40283484154232, 19.430688092033783, 19.458541342525244, 19.48639459301671, 19.514247843508173])
+              .range(['#2563ebff', '#2664ecff', '#2664ecff', '#2765ecff', '#2866ecff', '#2967ecff', '#2a68ecff', '#2b68ecff', '#2c69edff', '#2d6aedff', '#2d6bedff', '#2e6cedff', '#2f6cedff', '#306dedff', '#316eedff', '#326feeff', '#3370eeff', '#3470eeff', '#3571eeff', '#3572eeff', '#3673eeff', '#3773eeff', '#3874efff', '#3975efff', '#3a76efff', '#3b77efff', '#3c77efff', '#3d78efff', '#3d79efff', '#3e7af0ff', '#3f7bf0ff', '#407bf0ff', '#417cf0ff', '#427df0ff', '#437ef0ff', '#447ef0ff', '#457ff1ff', '#4580f1ff', '#4681f1ff', '#4782f1ff', '#4882f1ff', '#4983f1ff', '#4a84f2ff', '#4b85f2ff', '#4c86f2ff', '#4c86f2ff', '#4d87f2ff', '#4e88f2ff', '#4f89f2ff', '#508af3ff', '#518af3ff', '#528bf3ff', '#538cf3ff', '#548df3ff', '#548df3ff', '#558ef3ff', '#568ff4ff', '#5790f4ff', '#5891f4ff', '#5991f4ff', '#5a92f4ff', '#5b93f4ff', '#5c94f4ff', '#5c95f5ff', '#5d95f5ff', '#5e96f5ff', '#5f97f5ff', '#6098f5ff', '#6199f5ff', '#6299f5ff', '#639af6ff', '#639bf6ff', '#649cf6ff', '#659cf6ff', '#669df6ff', '#679ef6ff', '#689ff6ff', '#69a0f7ff', '#6aa0f7ff', '#6ba1f7ff', '#6ba2f7ff', '#6ca3f7ff', '#6da4f7ff', '#6ea4f7ff', '#6fa5f8ff', '#70a6f8ff', '#71a7f8ff', '#72a8f8ff', '#73a8f8ff', '#73a9f8ff', '#74aaf8ff', '#75abf9ff', '#76abf9ff', '#77acf9ff', '#78adf9ff', '#79aef9ff', '#7aaff9ff', '#7baff9ff', '#7bb0faff', '#7cb1faff', '#7db2faff', '#7eb3faff', '#7fb3faff', '#80b4faff', '#81b5faff', '#82b6fbff', '#82b6fbff', '#83b7fbff', '#84b8fbff', '#85b9fbff', '#86bafbff', '#87bafcff', '#88bbfcff', '#89bcfcff', '#8abdfcff', '#8abefcff', '#8bbefcff', '#8cbffcff', '#8dc0fdff', '#8ec1fdff', '#8fc2fdff', '#90c2fdff', '#91c3fdff', '#92c4fdff', '#92c5fdff', '#93c5fdff', '#94c6fcff', '#95c6fbff', '#96c6faff', '#97c6faff', '#98c7f9ff', '#98c7f8ff', '#99c7f7ff', '#9ac7f6ff', '#9bc8f5ff', '#9cc8f4ff', '#9dc8f3ff', '#9ec9f2ff', '#9ec9f1ff', '#9fc9f0ff', '#a0c9efff', '#a1caeeff', '#a2caeeff', '#a3caedff', '#a3caecff', '#a4cbebff', '#a5cbeaff', '#a6cbe9ff', '#a7cbe8ff', '#a8cce7ff', '#a9cce6ff', '#a9cce5ff', '#aacde4ff', '#abcde3ff', '#accde2ff', '#adcde1ff', '#aecee1ff', '#afcee0ff', '#afcedfff', '#b0cedeff', '#b1cfddff', '#b2cfdcff', '#b3cfdbff', '#b4cfdaff', '#b5d0d9ff', '#b5d0d8ff', '#b6d0d7ff', '#b7d0d6ff', '#b8d1d5ff', '#b9d1d5ff', '#bad1d4ff', '#bbd2d3ff', '#bbd2d2ff', '#bcd2d1ff', '#bdd2d0ff', '#bed3cfff', '#bfd3ceff', '#c0d3cdff', '#c1d3ccff', '#c1d4cbff', '#c2d4caff', '#c3d4c9ff', '#c4d4c9ff', '#c5d5c8ff', '#c6d5c7ff', '#c6d5c6ff', '#c7d6c5ff', '#c8d6c4ff', '#c9d6c3ff', '#cad6c2ff', '#cbd7c1ff', '#ccd7c0ff', '#ccd7bfff', '#cdd7beff', '#ced8bdff', '#cfd8bcff', '#d0d8bcff', '#d1d8bbff', '#d2d9baff', '#d2d9b9ff', '#d3d9b8ff', '#d4dab7ff', '#d5dab6ff', '#d6dab5ff', '#d7dab4ff', '#d8dbb3ff', '#d8dbb2ff', '#d9dbb1ff', '#dadbb0ff', '#dbdcb0ff', '#dcdcafff', '#dddcaeff', '#dedcadff', '#deddacff', '#dfddabff', '#e0ddaaff', '#e1dea9ff', '#e2dea8ff', '#e3dea7ff', '#e3dea6ff', '#e4dfa5ff', '#e5dfa4ff', '#e6dfa3ff', '#e7dfa3ff', '#e8e0a2ff', '#e9e0a1ff', '#e9e0a0ff', '#eae09fff', '#ebe19eff', '#ece19dff', '#ede19cff', '#eee19bff', '#efe29aff', '#efe299ff', '#f0e298ff', '#f1e397ff', '#f2e397ff', '#f3e396ff', '#f4e395ff', '#f5e494ff', '#f5e493ff', '#f6e492ff', '#f7e491ff', '#f8e590ff', '#f9e58fff', '#fae58eff', '#fbe58dff', '#fbe68cff', '#fce68bff', '#fde68bff', '#fde68aff', '#fde589ff', '#fde488ff', '#fde387ff', '#fde286ff', '#fde185ff', '#fde084ff', '#fddf83ff', '#fddf82ff', '#fdde81ff', '#fddd80ff', '#fddc7fff', '#fddb7eff', '#fdda7dff', '#fdd97dff', '#fdd87cff', '#fdd77bff', '#fdd67aff', '#fdd579ff', '#fdd478ff', '#fdd377ff', '#fdd376ff', '#fdd275ff', '#fdd174ff', '#fdd073ff', '#fdcf72ff', '#fdce71ff', '#fdcd70ff', '#fdcc6fff', '#fdcb6fff', '#fdca6eff', '#fcc96dff', '#fcc86cff', '#fcc76bff', '#fcc66aff', '#fcc669ff', '#fcc568ff', '#fcc467ff', '#fcc366ff', '#fcc265ff', '#fcc164ff', '#fcc063ff', '#fcbf62ff', '#fcbe61ff', '#fcbd61ff', '#fcbc60ff', '#fcbb5fff', '#fcba5eff', '#fcba5dff', '#fcb95cff', '#fcb85bff', '#fcb75aff', '#fcb659ff', '#fcb558ff', '#fcb457ff', '#fcb356ff', '#fcb255ff', '#fcb154ff', '#fcb053ff', '#fcaf52ff', '#fcae52ff', '#fcad51ff', '#fbad50ff', '#fbac4fff', '#fbab4eff', '#fbaa4dff', '#fba94cff', '#fba84bff', '#fba74aff', '#fba649ff', '#fba548ff', '#fba447ff', '#fba346ff', '#fba245ff', '#fba144ff', '#fba144ff', '#fba043ff', '#fb9f42ff', '#fb9e41ff', '#fb9d40ff', '#fb9c3fff', '#fb9b3eff', '#fb9a3dff', '#fb993cff', '#fb983bff', '#fb973aff', '#fb9639ff', '#fb9538ff', '#fb9437ff', '#fb9436ff', '#fb9336ff', '#fb9235ff', '#fb9134ff', '#fa9033ff', '#fa8f32ff', '#fa8e31ff', '#fa8d30ff', '#fa8c2fff', '#fa8b2eff', '#fa8a2dff', '#fa892cff', '#fa882bff', '#fa882aff', '#fa8729ff', '#fa8628ff', '#fa8528ff', '#fa8427ff', '#fa8326ff', '#fa8225ff', '#fa8124ff', '#fa8023ff', '#fa7f22ff', '#fa7e21ff', '#fa7d20ff', '#fa7c1fff', '#fa7c1eff', '#fa7b1dff', '#fa7a1cff', '#fa791bff', '#fa781aff', '#fa771aff', '#fa7619ff', '#fa7518ff', '#fa7417ff', '#f97316ff', '#f97216ff', '#f97216ff', '#f87116ff', '#f87016ff', '#f77016ff', '#f76f16ff', '#f66e16ff', '#f56e16ff', '#f56d16ff', '#f46c16ff', '#f46b16ff', '#f36b16ff', '#f36a16ff', '#f26916ff', '#f26916ff', '#f16816ff', '#f16716ff', '#f06716ff', '#f06616ff', '#ef6517ff', '#ef6417ff', '#ee6417ff', '#ee6317ff', '#ed6217ff', '#ed6217ff', '#ec6117ff', '#ec6017ff', '#eb6017ff', '#eb5f17ff', '#ea5e17ff', '#ea5d17ff', '#e95d17ff', '#e95c17ff', '#e85b17ff', '#e85b17ff', '#e75a17ff', '#e75917ff', '#e65917ff', '#e65817ff', '#e55718ff', '#e45618ff', '#e45618ff', '#e35518ff', '#e35418ff', '#e25418ff', '#e25318ff', '#e15218ff', '#e15218ff', '#e05118ff', '#e05018ff', '#df4f18ff', '#df4f18ff', '#de4e18ff', '#de4d18ff', '#dd4d18ff', '#dd4c18ff', '#dc4b18ff', '#dc4b18ff', '#db4a18ff', '#db4918ff', '#da4819ff', '#da4819ff', '#d94719ff', '#d94619ff', '#d84619ff', '#d84519ff', '#d74419ff', '#d74419ff', '#d64319ff', '#d64219ff', '#d54119ff', '#d54119ff', '#d44019ff', '#d33f19ff', '#d33f19ff', '#d23e19ff', '#d23d19ff', '#d13d19ff', '#d13c19ff', '#d03b19ff', '#d03a19ff', '#cf3a1aff', '#cf391aff', '#ce381aff', '#ce381aff', '#cd371aff', '#cd361aff', '#cc361aff', '#cc351aff', '#cb341aff', '#cb331aff', '#ca331aff', '#ca321aff', '#c9311aff', '#c9311aff', '#c8301aff', '#c82f1aff', '#c72f1aff', '#c72e1aff', '#c62d1aff', '#c62c1aff', '#c52c1aff', '#c52b1bff', '#c42a1bff', '#c42a1bff', '#c3291bff', '#c2281bff', '#c2281bff', '#c1271bff', '#c1261bff', '#c0251bff', '#c0251bff', '#bf241bff', '#bf231bff', '#be231bff', '#be221bff', '#bd211bff', '#bd211bff', '#bc201bff', '#bc1f1bff', '#bb1e1bff', '#bb1e1bff', '#ba1d1cff', '#ba1c1cff', '#b91c1cff']);
+    
+
+    color_map_6bdf6ae232e5507f5be22e2f7ba9834c.x = d3.scale.linear()
+              .domain([5.615475848268085, 19.514247843508173])
+              .range([0, 450 - 50]);
+
+    color_map_6bdf6ae232e5507f5be22e2f7ba9834c.legend = L.control({position: 'topright'});
+    color_map_6bdf6ae232e5507f5be22e2f7ba9834c.legend.onAdd = function (map) {var div = L.DomUtil.create('div', 'legend'); return div};
+    color_map_6bdf6ae232e5507f5be22e2f7ba9834c.legend.addTo(map_2cc30dd2d3c016e360efa8147e94d777);
+
+    color_map_6bdf6ae232e5507f5be22e2f7ba9834c.xAxis = d3.svg.axis()
+        .scale(color_map_6bdf6ae232e5507f5be22e2f7ba9834c.x)
+        .orient("top")
+        .tickSize(1)
+        .tickValues([5.615475848268085, 9.090168847078107, 12.564861845888128, 16.039554844698152, 19.514247843508173]);
+
+    color_map_6bdf6ae232e5507f5be22e2f7ba9834c.svg = d3.select(".legend.leaflet-control").append("svg")
+        .attr("id", 'legend')
+        .attr("width", 450)
+        .attr("height", 40);
+
+    color_map_6bdf6ae232e5507f5be22e2f7ba9834c.g = color_map_6bdf6ae232e5507f5be22e2f7ba9834c.svg.append("g")
+        .attr("class", "key")
+        .attr("fill", "black")
+        .attr("transform", "translate(25,16)");
+
+    color_map_6bdf6ae232e5507f5be22e2f7ba9834c.g.selectAll("rect")
+        .data(color_map_6bdf6ae232e5507f5be22e2f7ba9834c.color.range().map(function(d, i) {
+          return {
+            x0: i ? color_map_6bdf6ae232e5507f5be22e2f7ba9834c.x(color_map_6bdf6ae232e5507f5be22e2f7ba9834c.color.domain()[i - 1]) : color_map_6bdf6ae232e5507f5be22e2f7ba9834c.x.range()[0],
+            x1: i < color_map_6bdf6ae232e5507f5be22e2f7ba9834c.color.domain().length ? color_map_6bdf6ae232e5507f5be22e2f7ba9834c.x(color_map_6bdf6ae232e5507f5be22e2f7ba9834c.color.domain()[i]) : color_map_6bdf6ae232e5507f5be22e2f7ba9834c.x.range()[1],
+            z: d
+          };
+        }))
+      .enter().append("rect")
+        .attr("height", 40 - 30)
+        .attr("x", function(d) { return d.x0; })
+        .attr("width", function(d) { return d.x1 - d.x0; })
+        .style("fill", function(d) { return d.z; });
+
+    color_map_6bdf6ae232e5507f5be22e2f7ba9834c.g.call(color_map_6bdf6ae232e5507f5be22e2f7ba9834c.xAxis).append("text")
+        .attr("class", "caption")
+        .attr("y", 21)
+        .attr("fill", "black")
+        .text("Average delay (minutes)");
+</script>
+</html>
