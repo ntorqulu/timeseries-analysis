@@ -1,7 +1,70 @@
 ---
-title: "R Notebook"
-output: html_notebook
+title: "Practical 3 - AR(p) Models"
+authors: Eleonora Mazzocca, Nùria Torquet
+output:
+  pdf_document:
+    latex_engine: xelatex
+  html_document:
+    df_print: paged
+editor_options: 
+  markdown: 
+    wrap: 72
 ---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+library(forecast)
+library(datasets)
+```
+
+# Practical 4a: Optimal fitting and forecasting
+
+## A) Choose p and 1 and simulate an ARMA(p,q) model
+
+We simulate an ARMA(1, 1) process and compare it with the automatically selected ARIMA model.
+
+```{r}
+set.seed(123)
+
+n <- 1000
+x <- arima.sim(model = list(order=c(1, 0, 1), ar = 0.8, ma = 0.3), n = n)
+
+plot(x, type="l", main="Simulated ARMA(1,1)", ylab="x", xlab="t")
+
+```
+
+Type in:
+```{r}
+y <- auto.arima(x)
+y
+```
+
+With automatic ARIMA fitting we get:
+
+ARIMA(1,0,1) with zero mean 
+
+Coefficients:
+         ar1     ma1
+      0.7782  0.3008
+s.e.  0.0227  0.0342
+
+Try:
+```{r}
+y <- auto.arima(x, max.p=2, max.q=2)
+y
+```
+With max.p=2 and max.q=2, we get the same model as before, ARIMA(1,0,1).
+
+Compute the residual analysis to check whether the fitted model is adequate and check that z is an IID noise:
+```{r}
+res <- resid(y)
+plot(res, type="l", main="Residuals of fitted ARIMA(1,0,1)", ylab="Residuals", xlab="Time")
+h <- round(log(n))
+Box.test(res, lag=h, type="Ljung-Box")
+```
+
+**Observations:**
+
 
 # Practical 4b: Dickey-Fuller test and SARIMA models
 
