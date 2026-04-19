@@ -1,0 +1,364 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+# Practical 4b: Dickey-Fuller test and SARIMA models
+
+## A) The Dickey-Fuller test:
+
+```{r}
+n<-200
+x<-rnorm(n)
+x
+```
+
+```{r}
+library(tseries)
+adf.test(x)
+pp.test(x)
+```
+
+**Observations:**
+
+As p-value is very small (0.01), the hypothesis of random walk is rejected.
+
+We will now create a random walk with a cumulative sum:
+
+```{r}
+y<-cumsum(x)
+y
+ts.plot(y, type="l", main="Random walk",ylab="y",xlab="Time")
+```
+
+```{r}
+adf.test(y)
+pp.test(y)
+```
+
+As expected, in this case the p-value is large and so we cannot reject the random walk hypothesis. Non-stationarity (random walk) is confirmed.
+
+We now try to take first differences to adjust an ARMA model:
+
+1.  Simulate and AR(1) model with phi=0.9
+2.  Compare different values of phi, 0.9, 0.99,... and different values of n (e.g. n=1000 and phi=0.9. Then, phi=0.99. And then n=10,000).
+
+```{r}
+# First we create a helper function: it simulates an AR(1), plots it, runs ADF test,
+# and also tests first differences
+
+check_ar1 <- function(phi, n) {
+  
+  # Simulate AR(1): X_t = phi * X_(t-1) + e_t
+  x <- arima.sim(model = list(ar = phi), n = n)
+  
+  # Plot original series
+  plot(
+    x, type = "l",
+    main = paste("AR(1) series with phi =", phi, "and n =", n),
+    xlab = "Time", ylab = "x"
+  )
+  
+  # ADF test on original series
+  adf_x <- adf.test(x)
+  
+  cat("\n----------------------------------------\n")
+  cat("AR(1) with phi =", phi, "and n =", n, "\n")
+  cat("----------------------------------------\n")
+  print(adf_x)
+  
+  # First differences
+  dx <- diff(x)
+  
+  # Plot differenced series
+  plot(
+    dx, type = "l",
+    main = paste("First differences of AR(1), phi =", phi, ", n =", n),
+    xlab = "Time", ylab = "diff(x)"
+  )
+  # ADF test on differenced series
+  adf_dx <- adf.test(dx)
+  
+  cat("\nADF test on first differences:\n")
+  print(adf_dx)
+}
+```
+
+-   **CASE 1:** n = 1000, phi = 0.9
+
+    This is a stationary AR(1), because $\phi$\<1. So the ADF test should give a small p-value and so reject the random-walk hypothesis - so the series should be stationary. This is confirmed by the outputs below.
+
+    Also the plot of diff(x) fluctuates around zero, indicating stationarity.
+
+```{r}
+res_09_1000 <- check_ar1(phi = 0.9, n = 1000)
+```
+
+-   **CASE 2:** n = 1000, phi = 0.99 **(increase phi)**
+
+    This is still stationary in theory, because $\phi$\<1. The output below in fact still shows a small p-value but larger (\<0.5) so visually it starts to look more like a random walk - but the random-walk hypothesis is still rejected and the series is stationary.
+
+    The plot of diff(x) still fluctuates around zero, indicating stationarity, however it has more evident fluctuations than the previous case.
+
+```{r}
+res_099_1000 <- check_ar1(phi = 0.99, n = 1000)
+```
+
+-   **CASE 3:** n = 10000, phi = 0.99 **(increase n)**
+
+    With n increasing, we are giving the ADF test much more information so it should clearly reject the random-walk hypothesis, and in fact the output below shows that the p-value is again very small (0.01). On the visual side as well, the series looks stationary and not a random walk unlike the previous case.
+
+    So a larger sample size helps to distinguish better between an AR(1) and true random walk.
+
+    The plot of diff(x) fluctuates around zero very clearly, indicating stationarity.
+
+```{r}
+res_099_10000 <- check_ar1(phi = 0.99, n = 10000)
+```
+
+## **B) Fitting SARIMA models:**
+
+We are now going to use the *nottem* dataset:
+
+```{r}
+library(forecast)
+
+x <- nottem   # monthly temperatures in Nottingham
+plot(x, main = "nottem: Monthly Temperatures", ylab = "Temperature", xlab = "Time")
+```
+
+The series shows clear seasonality, so a seasonal model is appropriate.
+
+```{r}
+#Seasonal differencing
+
+y <- diff(x, lag = 12)
+plot(y, main = "Seasonally Differenced Series: diff(nottem, 12)", ylab = "Differenced series", xlab = "Time")
+
+```
+
+Seasonal differencing at lag 12 removes yearly seasonal structure. Now the new series should look more stationary.
+
+```{r}
+# ACF and PACF of the differenced series
+
+par(mfrow = c(2, 1))
+acf(y, lag.max = 48, main = "ACF of Seasonally Differenced Series")
+pacf(y, lag.max = 48, main = "PACF of Seasonally Differenced Series")
+par(mfrow = c(1, 1))
+```
+
+**Observation:**
+
+The ACF and PACF are plotted up to lag 48 to see several periods of the series. Since the data is monthly, the seasonal period is 12, so we check what happens at lags 12, 24, etc. There are still some spikes, which means that even after differencing there is some remaining dependence. This suggests that we need a SARIMA model with seasonal terms.
+
+```{r}
+# Fit the model proposed in the practical: SARIMA(1,0,1)(1,0,1)[12] on the differenced series
+
+fit1 <- arima(y,  order = c(1, 0, 1), seasonal = list(order = c(1, 0, 1), period = 12))
+fit1
+```
+
+**Observations:**
+
+We fitted the model proposed in the practical, a SARIMA(1,0,1)(1,0,1)\_12 on the seasonally differenced series. The estimated coefficients are used to capture both the short-term dependence and the seasonal dependence remaining in `y`. The next step is to observe the residuals and see if they behave like white noise, which would indicate whether the model is adequate.
+
+```{r}
+fit2=resid(fit1)
+fit2
+plot(fit2, type = "l",
+     main = "Residuals of SARIMA(1,0,1)(1,0,1)[12]",
+     ylab = "Residuals", xlab = "Time")
+```
+
+**Observations:**
+
+The residuals fluctuate around zero and do not show a clear trend or seasonal pattern. This is great, because for a satisfactory model the residuals should look approximately like white noise. As further check, we will now inspect also the ACF and PACF of the residuals.
+		
+
+```{r}
+par(mfrow=c(2,1))
+acf(fit2, 48, main = "ACF of Residuals")
+pacf(fit2, 48, main = "PACF of Residuals")
+par(mfrow = c(1, 1))
+```
+
+**Observations:**
+
+The ACF and PACF of the residuals do not show strong autocorrelation, so the residual series is close to an IID noise. This suggests that the fitted SARIMA model captures most of the dependence present in the data. If large spikes were still visible, the model would not be adequate and additional terms might be needed.
+
+```{r}
+predict(fit1,n.ahead=24)
+```
+
+**Observations:**
+
+The prediction output gives the future estimated values and their associated uncertainty. Since the model was fitted on the seasonally differenced series `y`, these predictions refer to the differenced process, and not to the original series `x`. As the forecast horizon increases, the prediction intervals become wider, reflecting increasing uncertainty.
+
+```{r}
+library(forecast)
+par(mfrow=c(1,1))
+fit1for<-forecast(fit1)
+plot(fit1for)
+```
+
+**Observations:**
+
+The forecast plot shows the future behaviour predicted by the fitted SARIMA model together with prediction intervals:
+
+-   The central forecast follows the dependence structure captured by the model
+
+-   While the intervals widen as time goes on –\> this is in accordance with what noticed in the previous point, i.e. the uncertainty increases with time.
+
+We now compare simpler seasonal models in order to see whether fewer parameters can still provide residuals close to IID noise. We will try with the following alternatives:
+
+-   `fit1_alt`: SARIMA(1,0,0)(1,0,0)[12] → only AR terms
+
+-   `fit2_alt`: SARIMA(0,0,1)(0,0,1)[12] → only MA terms
+
+-   `fit3_alt`: SARIMA(1,0,1)(0,0,1)[12] → remove seasonal AR
+
+```{r}
+# Alternative models (less parameters)
+
+fit1_alt <- arima(y, order=c(1,0,0),
+                  seasonal=list(order=c(1,0,0), period=12)
+                  )
+
+fit2_alt <- arima(y, order=c(0,0,1),
+                  seasonal=list(order=c(0,0,1), period=12)
+                  )
+
+fit3_alt <- arima(y, order=c(1,0,1),
+                  seasonal=list(order=c(0,0,1), period=12)
+                  )
+```
+
+```{r}
+# Residuals of the alternative models
+fit1_alt_res <- resid(fit1_alt)
+fit2_alt_res <- resid(fit2_alt)
+fit3_alt_res <- resid(fit3_alt)
+
+par(mfrow=c(3,1))
+
+plot(fit1_alt_res, type="l", main="Residuals fit1_alt")
+plot(fit2_alt_res, type="l", main="Residuals fit2_alt")
+plot(fit3_alt_res, type="l", main="Residuals fit3_alt")
+
+par(mfrow=c(1,1))
+```
+
+**Observations:** The residuals of the three alternative models are compared to see whether they behave like white noise. A good model should produce residuals without visible patterns or trends, which is the case for the 3 alternatives.
+
+```{r}
+# ACF and PACF of residuals
+
+# fit1_alt
+par(mfrow=c(2,1))
+acf(fit1_alt_res, 48)
+pacf(fit1_alt_res, 48)
+
+# fit2_alt
+par(mfrow=c(2,1))
+acf(fit2_alt_res, 48)
+pacf(fit2_alt_res, 48)
+
+# fit3_alt
+par(mfrow=c(2,1))
+acf(fit3_alt_res, 48)
+pacf(fit3_alt_res, 48)
+
+par(mfrow=c(1,1))
+
+
+
+# Ljung-Box tests
+
+Box.test(fit1_alt_res, lag=24, type="Ljung-Box")
+Box.test(fit2_alt_res, lag=24, type="Ljung-Box")
+Box.test(fit3_alt_res, lag=24, type="Ljung-Box")
+```
+
+**Observations:**
+
+We analyze the ACF and PACF of the residuals together with the Ljung-Box test:
+
+-   For **fit1_alt**, the Ljung-Box test gives a p-value smaller than 0.05, so we reject the hypothesis of no autocorrelation. This is consistent with the ACF/PACF plots, where some lags exceed the confidence bounds (blue dashed lines), indicating remaining structure in the residuals. Therefore, this model is not adequate.
+
+-   For **fit2_alt**, the p-value is slightly above 0.05, so we do not reject the hypothesis, but the result is borderline. The ACF/PACF still show some small peaks, suggesting that some dependence may remain.
+
+-   For **fit3_alt**, the p-value is clearly above 0.05, and the ACF/PACF do not show significant spikes outside the confidence bounds. This indicates that the residuals behave like white noise.
+
+Therefore, among the alternative models, **fit3_alt is the best candidate**, since it produces residuals closest to IID noise.
+
+Although the residual plots look similar, the Ljung-Box test provides more clarity in the model comparison.
+
+```{r}
+
+# Prediction
+predict(fit1_alt, n.ahead=24)
+predict(fit2_alt, n.ahead=24)
+predict(fit3_alt, n.ahead=24)
+```
+
+```{r}
+#Forecast
+fit1_alt_for <- forecast(fit1_alt)
+plot(fit1_alt_for)
+
+fit2_alt_for <- forecast(fit2_alt)
+plot(fit2_alt_for)
+
+fit3_alt_for <- forecast(fit3_alt)
+plot(fit3_alt_for)
+
+
+# Plotting also the original model forecast for comparison
+fit1_for <- forecast(fit1)
+plot(fit1_for, main="Forecast - main model for comparison")
+```
+
+**Conclusion:**
+
+The forecast obtained from fit1_alt is noticeably different from the others, showing a different behaviour and larger variability. This is consistent with the residual analysis, where this model was found to be inadequate.
+
+On the other hand, the forecasts from fit2_alt and fit3_alt are quite similar, suggesting that both models capture the main structure of the series in a comparable way. However, between these two, ***fit3_alt is preferred*** because its residuals are closer to white noise, as confirmed by the Ljung-Box test.
+
+This shows that even if forecasts look similar, the final model selection should be done considering also the residual analysis.
+
+Other example proposed by the practical is with AirPassengers dataset:
+
+```{r}
+x<-AirPassengers
+plot(x)
+library(astsa)
+fit1_airp<-sarima(x,0,1,0,0,1,0,12)
+fit2_airp<-sarima(x,1,1,0,0,1,0,12)
+fit3_airp<-sarima(x,0,1,0,0,1,1,12)
+```
+
+**Comparison of the models:**
+
+We compare the models by analyzing their residuals and diagnostic plots produced by the `sarima` function.
+
+-   The **first model**, SARIMA(0,1,0)(0,1,0)[12], is not adequate, since the residuals show clear autocorrelation and the Ljung-Box test gives small p-values.
+
+-   The **second model**, SARIMA(1,1,0)(0,1,0)[12], improves the fit by including a non-seasonal AR term, but the residuals still show some autocorrelation at higher lags, and the Ljung-Box test is not consistently satisfactory.
+
+-   The **third model**, SARIMA(0,1,0)(0,1,1)[12], provides the **best fit**. The residuals behave closer to white noise, the ACF shows no significant spikes, and the Ljung-Box p-values are consistently high.
+
+**Conclusion:**
+
+Among the three models, the **SARIMA(0,1,0)(0,1,1)[12]** model is the best, since it produces residuals closest to IID noise. It successfully captures the seasonal structure of the data while keeping the model relatively simple.
+
+**Prediction:**
+
+We compute a 12-step ahead forecast using the selected model:
+
+```{r}
+# Prediction using the selected SARIMA model
+sarima.for(x, 12, 0, 1, 0, 0, 1, 1, 12)
+```
+
+The forecast follows the increasing trend and seasonal pattern observed in the data. The prediction intervals widen over time, reflecting increasing uncertainty in the forecasts.
