@@ -1,11 +1,11 @@
 ---
-title: "Practical 3 - AR(p) Models"
+title: "Practical 4 - Optimal fitting and forecasting"
 authors: Eleonora Mazzocca, Nùria Torquet
 output:
   pdf_document:
     latex_engine: xelatex
   html_document:
-    df_print: paged
+    # df_print: paged
 editor_options: 
   markdown: 
     wrap: 72
@@ -414,16 +414,17 @@ And obtain aproximately the same result, with a p-value of 0.9943, confirming th
 Finally we reduce the model order trying smaller models
 
 ```{r}
-arima(y, order=c(1,0,1), include.mean=FALSE)
-arima(y, order=c(1,0,0), include.mean=FALSE)
-arima(y, order=c(0,0,1), include.mean=FALSE)
+model1 <- arima(y, order=c(1,0,1), include.mean=FALSE)
+model2 <- arima(y, order=c(1,0,0), include.mean=FALSE)
+model3 <- arima(y, order=c(0,0,1), include.mean=FALSE)
 ```
 
 And check the residuals of these simpler models to see whether they are still adequate or not.
 
 ```{r}
-Box.test(resid(model), lag=5, type="Ljung-Box")
-Box.test(resid(model), lag=log(98), type="Ljung-Box")
+Box.test(resid(model1), lag=5, type="Ljung-Box")
+Box.test(resid(model2), lag=log(98), type="Ljung-Box")
+Box.test(resid(model3), lag=log(98), type="Ljung-Box")
 ```
 
 As we decrease (a, b) the residuals look less random and the p-value decreases.
