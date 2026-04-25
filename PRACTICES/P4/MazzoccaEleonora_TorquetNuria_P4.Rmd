@@ -34,6 +34,7 @@ plot(x, type="l", main="Simulated ARMA(1,1)", ylab="x", xlab="t")
 ```
 
 Type in:
+
 ```{r}
 y <- auto.arima(x)
 y
@@ -48,7 +49,10 @@ Coefficients:
       0.7782  0.3008
 s.e.  0.0227  0.0342
 
+Estimated coeffitients AR and MA are close to the true values used for simulation (0.8 and 0.3 respectively), not completely exact due to randomness.
+
 Try:
+
 ```{r}
 y <- auto.arima(x, max.p=2, max.q=2)
 y
@@ -64,6 +68,422 @@ Box.test(res, lag=h, type="Ljung-Box")
 ```
 
 **Observations:**
+
+We limit model search to p <= 2, q <= 2 and d = 0.
+Auto.arima chooses the best ARIMA model, and the residuals are white noise.
+We can see this with:
+- Plot: there is no visible pattern, no trend and constant variance.
+- Ljung-Box test: we obtain a p-value of 0.9704, which is much larger than 0.05, so we do not reject the null hypothesis of no autocorrelation in the residuals. This confirms that the fitted ARIMA(1,0,1) model is adequate for the simulated data.
+
+To forecast we use the instruction:
+
+```{r}
+xfc <- forecast(y)
+plot(xfc, main="Forecast ARMA(1,1)")
+```
+
+**Note**: We should forecast the model, not the raw data. Typo in the practice.
+
+Example:
+
+```{r}
+n <- 1000
+x <- arima.sim(list(order=c(1, 0, 1), ar=(0.8), ma=c(0.3)), n = n)
+plot(x, type="l")
+Box.test(x, lag=log(n), type=c("Ljung-Box"))
+
+y <- auto.arima(x)
+y
+z <- resid(y)
+plot(z)
+h <- log(n)
+Box.test(z, lag=h, type=c("Ljung-Box"))
+xfc <- forecast(y)
+plot(xfc, type="l")
+```
+
+Do the same with real data:
+
+```{r}
+y <- LakeHuron
+plot(y, type="l", main="Lake Huron Levels")
+```
+
+Fit an ARIMA model to the data:
+
+```{r}
+lh <- auto.arima(y)
+lh
+```
+
+Residuals:
+
+```{r}
+z <- resid(lh)
+plot(z, type="l", main="Residuals (Lake Huron)")
+```
+
+Check IID noise:
+
+```{r}
+h <- log(length(y))
+Box.test(z, lag=h, type="Ljung-Box")
+```
+
+To forecast do:
+
+```{r}
+lhfc <- forecast(lh)
+plot(lhfc, type="l", main="Forecast Lake Huron")
+```
+
+We see in this first iteration that the model found is:
+- ARIMA(0, 1, 0): this is a random walk model
+The residual test gives a p-value of 0.02297, rejecting the IID assumption. 
+Residuals are not white noise. 
+
+This means that the model selected by `auto.arima()` is not adequate.
+Leaves structure in the residuals and fails the Ljung-Box test.
+
+Next example improves the randomness of the residuals:
+
+```{r}
+lh <- arima(x, order=c(1, 1, 1), method="ML")
+lh
+```
+
+Now the model includes AR(1) component, MA(1) component and differencing (d=1).
+
+```{r}
+z <- resid(lh)
+plot(z, type="l")
+```
+
+We see more random behaviour than the previous example, with less structure.
+
+```{r}
+h <- log(98)
+Box.test(z, lag=h, type="Ljung-Box")
+```
+
+We obtain a p-value of 0.0016 which is smaller than before.
+The ARIMA(1, 1, 1) model does not improve the fit. The Ljung-Box test returns a very
+small p-value (0.0016) indicating that the residuals are not white noise.
+The model performs worst than a simpler ARIMA(0, 1, 0) model. Specially with limited data
+(LakeHuron has aprox 98 points) there is not enoigh data to estimate complex models.
+Addding AR + MA introduces noise instead of structure.
+
+Another version:
+
+```{r}
+y <- diff(x)
+plot(y)
+```
+
+Instead of fitting ARIMA(1, 1, 1) directly on the original series, we can differentiate it first.
+This removes trend/non-stationarity and makes the series more stable.
+
+```{r}
+lh <- arima(y, order=c(1, 0, 1), method="ML")
+lh
+```
+
+It has the same structure as before but now we have applied it to a stationary series.
+
+```{r}
+z <- resid(lh)
+plot(z, type="l")
+```
+
+We observe more randomness than before.
+
+```{r}
+h <- log(98)
+Box.test(z, lag=h, type="Ljung-Box")
+```
+
+Fit ARMA(1, 1)
+
+```{r}
+lh <- arima(y, order=c(1,0,1), method="ML")
+lh
+```
+
+We see that ARM and MA coefficients are estimated. Model assumes short memory dependence.
+
+```{r}
+z <- resid(lh)
+plot(z, type="l", main="Residuals ARMA(1,1)")
+```
+
+Residuals look more random than previous models. There's no obvious trend or structure.
+
+```{r}
+h <- log(98)
+Box.test(z, lag=h, type="Ljung-Box")
+```
+
+We see that p-value is still 0.0016, still some structure.
+
+```{r}
+lhfc <- forecast(lh)
+plot(lhfc, type="l", main="Forecast ARMA(1,1)")
+```
+
+Forecast is smoother, but still not based on stationary dynamics.
+
+We then try ARMA(2, 2)
+
+```{r}
+lh <- arima(y, order=c(2,0,2), method="ML")
+lh
+```
+And resiudlas analysis:
+
+```{r}
+z <- resid(lh)
+plot(z, type="l", main="Residuals ARMA(2,2)")
+```
+
+Looks similar to previous residuals, sometimes slightly more irregular.
+
+```{r}
+Box.test(z, lag=h, type="Ljung-Box")
+```
+
+We obtain in this case a p-value of 0.9984 which is much larger than 0.05, so we do not reject the null hypothesis of no autocorrelation in the residuals. This suggests that the ARMA(2, 2) model provides a better fit to the data compared to the previous models, as it captures more of the dependence structure and leaves residuals that behave more like white noise.
+
+## B) Generate MA(2) and fit an MA(3) for example. Note that the third coefficient is statistically null. Note that is better to force mean=0 to avoid statistical noise. Try the following:
+
+First we generate MA(2):
+
+```{r}
+n <- 1000
+x <- arima.sim(list(order=c(0,0,2), ma=c(1.5,0.75)), n)
+plot(x, type="l", main="Simulated MA(2)")
+```
+
+Series shows short-term dependence and no trend (stationary).
+
+Then we fit correct MA(2) model:
+
+```{r}
+x.ma2 <- arima(x, order=c(0,0,2), include.mean=FALSE)
+x.ma2
+```
+
+We obtain coefficients around 1.5 and 0.75, close to the true values.
+
+And then we get the residuals:
+
+```{r}
+y2 <- resid(x.ma2)
+plot(y2, type="l", main="Residuals MA(2)")
+Box.test(y2, lag=log(n), type="Ljung-Box")
+```
+
+Residuals look random, with no visible structure. The p-value is high (0.8176), so we do not reject the null hypothesis of no autocorrelation in the residuals. This confirms that the fitted MA(2) model is adequate for the simulated data.
+
+Now we fit an MA(3) model:
+
+```{r}
+x.ma3 <- arima(x, order=c(0,0,3), include.mean=FALSE)
+x.ma3
+```
+
+The third coefficient is close to zero. This is expected, since the true model is MA(2), so the third MA term should not contribute significantly to the fit.
+THere's a large standard error for the third coefficient, indicating that it is not statistically significant. This confirms that the MA(3) model does not provide a better fit than the MA(2) model, and the additional parameter is not necessary.
+
+We compute the residuals of the MA(3) model:
+
+```{r}
+y3 <- resid(x.ma3)
+plot(y3, type="l", main="Residuals MA(3)")
+Box.test(y3, lag=log(n), type="Ljung-Box")
+```
+
+Residuals are very similar to MA(2) residuals, with no visible structure. The p-value is also high (0.8176), confirming that the MA(3) model also provides an adequate fit. However, since the third coefficient is not statistically significant, the simpler MA(2) model is preferred for parsimony.
+
+**Conclusion**
+In this example, we simulated an MA(2) process and fitted both an MA(2) and an MA(3) model. The MA(2) model correctly identified the true parameters and produced residuals that behaved like white noise. The MA(3) model included an additional parameter that was not statistically significant, and its residuals were similar to those of the MA(2) model. Therefore, the MA(2) model is preferred for its simplicity and adequacy in capturing the underlying process.
+
+## C) Repeat the previous exercise with an AR model
+
+We repeat the same steps with an AR(2) model instead.
+
+```{r}
+n <- 1000
+x <- arima.sim(list(order=c(2,0,0), ar=c(0.7, -0.3)), n)
+plot(x, type="l", main="Simulated AR(2)")
+```
+
+We see that the series shows short-term dependence over time, and smooth flucturations (typical AR behaviour).
+
+Then we fit the correct AR(2) model:
+```{r}
+x.ar2 <- arima(x, order=c(2,0,0), include.mean=FALSE)
+x.ar2
+```
+
+We obtain coefficients around 0.7 and -0.3, close to the true values.
+
+And then we get the residuals:
+
+```{r}
+z2 <- resid(x.ar2)
+plot(z2, type="l", main="Residuals AR(2)")
+Box.test(z2, lag=log(n), type="Ljung-Box")
+```
+
+Residuals look random, with a p-value of (0.4828). This is larger than 0.05, so we do not reject the null hypothesis of no autocorrelation in the residuals. This confirms that the fitted AR(2) model is adequate for the simulated data.
+
+Now we ovefit with an AR(3) model:
+
+```{r}
+x.ar3 <- arima(x, order=c(3,0,0), include.mean=FALSE)
+x.ar3
+```
+
+The third coefficient is close to zero, with a large standard error, indicating that it is not statistically significant. This confirms that the AR(3) model does not provide a better fit than the AR(2) model, and the additional parameter is not necessary.
+
+We compute the residuals of the AR(3) model:
+
+```{r}
+z3 <- resid(x.ar3)
+plot(z3, type="l", main="Residuals AR(3)")
+Box.test(z3, lag=log(n), type="Ljung-Box")
+```
+
+Residuals are very similar to AR(2) residuals, with no visible structure. The p-value is also high (0.6694), confirming that the AR(3) model also provides an adequate fit. However, since the third coefficient is not statistically significant, the simpler AR(2) model is preferred for parsimony.
+
+**Conclusion**
+
+In this example, we simulated an AR(2) process and fitted both an AR(2) and an AR(3) model. The AR(2) model correctly identified the true parameters and produced residuals that behaved like white noise. 
+The AR(3) model included an additional parameter that was not statistically significant, and its residuals were similar to those of the AR(2) model. 
+Therefore, the AR(2) model is preferred for its simplicity and adequacy in capturing the underlying process.
+
+## D) Sometimes it may be difficult to distinguish more complex ARMA models like an ARMA(2, 1) and an ARMA(1, 2). Thus the fitting is frequently not that good. Fit an ARIMA(a, 1, b) model to Lake Huron data.
+
+We first prepare the data:
+
+```{r}
+x <- LakeHuron
+y <- diff(x)
+plot(y, type="l", main="Differenced Lake Huron")
+```
+
+We removed the trend by taking first differences, so now we should have a more stationary series. We can now fit an ARIMA(a, 1, b) model to the original data, which is equivalent to fitting an ARMA(a, b) model to the differenced series `y`.
+
+Then we fit an ARIMA(a, 1, b) model:
+
+```{r}
+a <- 2
+b <- 2
+
+lh <- arima(y, order=c(a,0,b), method="ML", include.mean=FALSE)
+lh
+```
+
+Model is relatively complex, with 4 parameters to estimate. The AR and MA coefficients are estimated, but some of them are not statistically significant (e.g. the second AR term). This suggests that a simpler model might be sufficient.
+
+We compute the residuals:
+
+```{r}
+z <- resid(lh)
+plot(z, type="l", main="Residuals ARIMA(2,1,2)")
+```
+
+Residuals look more random than previous models, with no clear structure.
+
+```{r}
+h <- 5
+Box.test(z, lag=h, type="Ljung-Box")
+```
+
+The p-value is 0.9985, which is much larger than 0.05, so we do not reject the null hypothesis of no autocorrelation in the residuals. This suggests that the ARIMA(2, 1, 2) model provides a good fit to the data, as it captures the underlying structure and leaves residuals that behave like white noise.
+
+We then change the lag h:
+
+```{r}
+h <- log(98)
+Box.test(z, lag=h, type="Ljung-Box")
+```
+
+And obtain aproximately the same result, with a p-value of 0.9943, confirming that the residuals are not autocorrelated and the model is adequate.
+
+Finally we reduce the model order trying smaller models
+
+```{r}
+arima(y, order=c(1,0,1), include.mean=FALSE)
+arima(y, order=c(1,0,0), include.mean=FALSE)
+arima(y, order=c(0,0,1), include.mean=FALSE)
+```
+
+And check the residuals of these simpler models to see whether they are still adequate or not.
+
+```{r}
+Box.test(resid(model), lag=5, type="Ljung-Box")
+Box.test(resid(model), lag=log(98), type="Ljung-Box")
+```
+
+As we decrease (a, b) the residuals look less random and the p-value decreases.
+This shows that simpler models fail to capture structure and more complex models (2, 2) perform better.
+
+## E) Fit ARIMA models to other datasets
+
+We will use the dataset of practical 1, AirPassengers
+
+```{r}
+library(datasets)
+x <- AirPassengers
+plot(x, type="l", main="AirPassengers")
+```
+
+We see a clear increasing trend, clear seasonality and no stationarity.
+
+We can try an automatic ARIMA fitting first:
+
+```{r}
+fit <- auto.arima(x)
+fit
+```
+Model is ARIMA(2,1,1)(0,1,0)[12] with non-zero mean. This is a complex model with many parameters, but it is necessary to capture the trend and seasonality in the data.
+
+We then compute the residuals:
+```{r}
+z <- resid(fit)
+plot(z, type="l", main="Residuals AirPassengers")
+Box.test(z, lag=log(length(x)), type="Ljung-Box")
+```
+
+Residuals look random and p-value is 0.6483, higher than 0.05, so we do not reject the null hypothesis of no autocorrelation in the residuals. This confirms that the fitted ARIMA(2,1,1)(0,1,0)[12] model is adequate for the AirPassengers data.
+
+Then we forecast:
+
+```{r}
+fc <- forecast(fit)
+plot(fc, main="Forecast AirPassengers")
+```
+
+Forecast shows an increasing trend and seasonal pattern, consistent with the structure captured by the model. The prediction intervals widen as time goes on, reflecting increasing uncertainty in the forecasts.
+
+
+We can check another dataset not used before, like the Nile River Flow.
+
+```{r}
+x <- Nile
+plot(x, type="l", main="Nile River Flow")
+fit <- auto.arima(x)
+fit
+z <- resid(fit)
+plot(z, type="l", main="Residuals Nile")
+Box.test(z, lag=log(length(x)), type="Ljung-Box")
+fc <- forecast(fit)
+plot(fc, main="Forecast Nile")
+```
+
+For this second example a relatively simple ARIMA model is sufficient for the Nile data.
+The residuals behave like white noise, indicating that the model capture the structure of the series.
 
 
 # Practical 4b: Dickey-Fuller test and SARIMA models
