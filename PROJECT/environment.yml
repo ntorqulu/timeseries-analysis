@@ -9,6 +9,7 @@ dependencies:
   - matplotlib
   - seaborn
   - jupyterlab
+  - pyarrow
   - pip
   - pip:
       - google-auth
