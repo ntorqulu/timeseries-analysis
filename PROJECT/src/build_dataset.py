@@ -6,7 +6,7 @@ from difflib import get_close_matches
 from datetime import datetime
 import pandas as pd
 import numpy as np
-from loader import get_r1_station_ids
+from loader import get_r1_station_ids, load_weather
 
 
 def _normalize_station_name(name):
@@ -48,6 +48,65 @@ def _load_holiday_calendar(project_dir):
     holidays_df = pd.read_csv(holidays_path)
     holidays_df["service_date"] = pd.to_datetime(holidays_df["date"], errors="coerce").dt.date
     return holidays_df[["service_date", "is_holiday"]].drop_duplicates()
+
+
+def _load_hourly_weather(target_hours=None):
+    weather_df = load_weather()
+    if weather_df.empty:
+        return weather_df
+
+    weather_df = weather_df.copy()
+    weather_df["hour_trunc"] = pd.to_datetime(weather_df["timestamp"], errors="coerce").dt.floor("h")
+    weather_df = weather_df.dropna(subset=["hour_trunc"])
+
+    hourly_weather = (
+        weather_df.groupby("hour_trunc", as_index=False)
+        .agg(
+            temperature=("temperature", "mean"),
+            precipitation=("precipitation", "mean"),
+            windspeed=("windspeed", "mean"),
+            weathercode=("weathercode", "last"),
+            cloudcover=("cloudcover", "mean"),
+        )
+    )
+
+    weather_start = hourly_weather["hour_trunc"].min()
+    weather_end = hourly_weather["hour_trunc"].max()
+
+    if target_hours is not None and len(target_hours) > 0:
+        target_start = pd.Series(target_hours).min()
+        target_end = pd.Series(target_hours).max()
+        weather_start = min(weather_start, target_start)
+        weather_end = max(weather_end, target_end)
+
+    full_hour_index = pd.DataFrame(
+        {"hour_trunc": pd.date_range(weather_start, weather_end, freq="h")}
+    )
+    hourly_weather = full_hour_index.merge(hourly_weather, on="hour_trunc", how="left")
+
+    # Keep a provenance flag before filling so downstream analysis can tell
+    # whether the weather came from a real source observation or from carry-forward.
+    hourly_weather["weather_from_raw_observation"] = hourly_weather["temperature"].notna()
+
+    # The weather feed is irregular and skips some hours. For feature building we
+    # normalize it to a complete hourly grid and carry the last available weather
+    # forward, so every train row can attach the most recent known conditions.
+    fill_columns = [
+        "temperature",
+        "precipitation",
+        "windspeed",
+        "weathercode",
+        "cloudcover",
+    ]
+    hourly_weather[fill_columns] = hourly_weather[fill_columns].ffill()
+    hourly_weather["weather_was_carried_forward"] = (
+        ~hourly_weather["weather_from_raw_observation"]
+    ).astype("int8")
+    hourly_weather["weather_from_raw_observation"] = hourly_weather[
+        "weather_from_raw_observation"
+    ].astype("int8")
+    hourly_weather["weathercode"] = hourly_weather["weathercode"].astype("Int64")
+    return hourly_weather
 
 
 def _get_direction_station_orders(project_dir):
@@ -323,6 +382,10 @@ def build_features(data_dir):
             np.where(tt_df["is_weekend"], "weekend", "workday"),
         ),
     )
+
+    weather_df = _load_hourly_weather(tt_df["hour_trunc"])
+    if not weather_df.empty:
+        tt_df = tt_df.merge(weather_df, on="hour_trunc", how="left")
 
     direction1_order, direction2_order = _get_direction_station_orders(project_dir)
 

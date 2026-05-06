@@ -66,4 +66,21 @@ python src/analyze_missing_directions.py
 
 This creates a station-level summary CSV and a bar chart in `data/processed/`.
 
+## Build Weather Dataset
+
+To export the raw weather parquet files into an hourly dataset for exploration, run:
+
+```bash
+python src/build_weather_dataset.py
+```
+
+This creates a timestamped file like `data/processed/weather_hourly_YYYYMMDD_HHMMSS.csv`.
+The output includes:
+
+- one row per hour
+- hourly averages for `temperature`, `precipitation`, `windspeed`, and `cloudcover`
+- the last observed `weathercode` in each hour
+- `raw_observation_count`
+- `has_raw_observation`, so you can identify hours where the source weather feed had no rows
+
 ## EDA R1
