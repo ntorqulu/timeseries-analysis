@@ -1,0 +1,323 @@
+---
+title: "Practical 5"
+authors: Eleonora Mazzocca, Nùria Torquet
+output:
+  pdf_document:
+    latex_engine: xelatex
+  html_document:
+    # df_print: paged
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+# PART 1 - Practice 12 R: ARFIMA Model
+
+## 1.1 Simulating the ARFIMA Model
+
+In this section we will generate a time series using an ARFIMA(2,d,1)
+model. We expect "long memory" in data through the parameter $d$, which
+we for now choose as $d=0.4$. We set a seed so that the same simulated
+series, and therefore the same estimates, are reproduced when the
+document is knitted again.
+
+```{R}
+set.seed(1)
+n <- 1000
+x <- arima.sim(n, model = list(phi = c(0.2, 0.1), dfrac = 0.4, theta = 0.9))
+plot(x, type = "l", main = "Simulated ARFIMA(2, 0.4, 1)", ylab = "Value", xlab = "Time", col = "steelblue")
+```
+
+## 1.2 Fitting the ARFIMA Model
+
+Now we will fit the best model. To do so, we first install the package
+*fracdiff* which we need to estimate the best parameters. Then we use
+*fracdiff* with the following parameters:
+
+-   **nar=2:** specifies 2 Auto-Regressive (AR) terms
+
+-   **nma=1**: specifies 1 Moving Average (MA) term
+
+-   **drange=c(0,0.5)**: restricts the search for $d$ to the range (0 to
+    0.5)
+
+```{R}
+# install.packages("fracdiff")
+library(fracdiff)
+
+fit1<-fracdiff(x, nar=2, nma=1, drange=c(0,0.5))
+summary(fit1)
+
+# Extract d and remove the long-memory component
+d<-fit1$d
+fit2=diffseries(x,d)
+acf(fit2, main = "ACF of Fractionally Differenced Series")
+
+# Fit the remaining ARMA structure
+fit3<-arima(fit2,order=c(2,0,1))
+fit4<-resid(fit3)
+acf(fit4, main = "ACF of Residuals (IID Noise Check)")
+
+
+# Formal test for independence
+print(Box.test(fit4, lag = floor(log(n)), type = "Ljung-Box"))
+```
+
+The residual diagnostics are compatible with white noise after removing
+the estimated long-memory and ARMA components:
+
+-   the Ljung-Box test does not reject independence at the $5\%$ level,
+    so there is no strong evidence of remaining serial correlation in
+    `fit4`
+
+-   however, the parameter recovery is poor: in this simulated example
+    the estimated $d$ is far from the true value $0.4$, which is exactly
+    the practical issue highlighted in the guide for more complex ARFIMA
+    models
+
+**Observations on ACF plots:**
+
+-   **ACF of Fractionally Differenced Series:** After applying
+    `diffseries(x, d)`, the strong "long-memory" (slowly decaying)
+    correlations should be mostly removed. Any remaining dependence
+    should now be short-range and attributable to the ARMA part. In this
+    run the ACF does not show a very clear residual pattern, which
+    illustrates how difficult it can be to separate long memory from
+    short-memory dynamics in finite samples.
+
+-   **ACF of Residuals (`fit4`):** Once the $ARMA(2,1)$ structure is
+    removed from the fractionally differenced series, the ACF shows no
+    dominant spikes outside the confidence bounds. This suggests the
+    residuals behave approximately like white noise.
+
+## 1.3 Change different values for d, phi, theta, n
+
+Let's see how changing parameters affects the model's ability to recover
+$d$.
+
+In particular, we analyze the influence of the sample size, the
+fractional differencing parameter d, and the AR/MA coefficients.
+
+### Scenario A: High Data Volume ($n=5000$) with Stronger $AR$
+
+First, we increase $n$ to $5000$ and strengthen the first $AR$
+coefficient (while weakening the $MA$ one) to see if more data helps the
+model separate short-term and long-term memory.
+
+```{r}
+set.seed(1)
+n_a <- 5000
+x_a <- arima.sim(n_a, model = list(phi = c(0.6, 0.1), dfrac = 0.3, theta = 0.5))
+
+plot(x_a, type = "l", main = "ARFIMA: n=5000, d=0.3, Strong AR", col = "darkgreen")
+```
+
+```{r}
+library(fracdiff)
+
+fit1<-fracdiff(x_a, nar=2, nma=1, drange=c(0,0.5))
+summary(fit1)
+
+# Extract d and remove the long-memory component
+d<-fit1$d
+fit2=diffseries(x_a,d)
+acf(fit2, main = "ACF of Fractionally Differenced Series")
+
+# Fit the remaining ARMA structure
+fit3<-arima(fit2,order=c(2,0,1))
+fit4<-resid(fit3)
+acf(fit4, main = "ACF of Residuals (IID Noise Check)")
+
+
+# Formal test for independence
+print(Box.test(fit4, lag = floor(log(n_a)), type = "Ljung-Box"))
+```
+
+Even with many more observations, the estimate of $d$ is still very poor
+in this run: it is pushed close to $0$ instead of the true $d=0.3$. This
+shows that increasing $n$ does not automatically solve the
+identification problem when the series contains both long memory and
+non-trivial ARMA dynamics.
+
+Even though the `fracdiff` function failed to correctly identify the
+*source* of the memory (it missed $d$), the final combination of
+fractional differencing and $ARIMA(2,0,1)$ was still mathematically
+flexible enough to remove most of the remaining dependence, as indicated
+by the residual ACF and the Ljung-Box test.
+
+### Scenario B: Low Data ($n=500$) with "Boundary" Parameters
+
+Here we reduce $n$ and set $d$ close to the non-stationary boundary
+($0.45$) and a high $MA$ term ($0.9$).
+
+```{r}
+set.seed(42)
+n_b <- 500
+x_b <- arima.sim(n_b, model = list(phi = c(0.1, 0.1), dfrac = 0.45, theta = 0.9))
+
+plot(x_b, type = "l", main = "ARFIMA: n=500, d=0.45, High MA", col = "darkred")
+```
+
+```{r}
+library(fracdiff)
+
+fit1<-fracdiff(x_b, nar=2, nma=1, drange=c(0,0.5))
+summary(fit1)
+
+# Extract d and remove the long-memory component
+d<-fit1$d
+fit2=diffseries(x_b,d)
+acf(fit2, main = "ACF of Fractionally Differenced Series")
+
+# Fit the remaining ARMA structure
+fit3<-arima(fit2,order=c(2,0,1))
+fit4<-resid(fit3)
+acf(fit4, main = "ACF of Residuals (IID Noise Check)")
+
+
+# Formal test for independence
+print(Box.test(fit4, lag = floor(log(n_b)), type = "Ljung-Box"))
+```
+
+Also in this case the parameter $d$ is not estimated correctly. This is
+coherent with what noted in the practical guide: adding $MA$ components
+(like $\theta=0.9$) makes things "worse" because the short-term shock of
+the $MA$ term can perfectly mimic or mask the long-memory effects of $d$
+in small samples. Here the problem is amplified because $d=0.45$ is
+already close to the stationarity boundary, so distinguishing persistent
+long memory from strong short-run dependence becomes even harder.
+
+## 1.4 Simpler model: ARFIMA(1,d,0)
+
+We now analyze a simpler ARFIMA(1,d,0) model in order to compare the
+estimation performance with the previous example.
+
+```{r}
+library(fracdiff)
+set.seed(42)
+n<-1000
+sample<-fracdiff.sim(n, ar=0.9, d=0.4)
+x<-sample$series
+plot(x,type="l")
+fit1<-fracdiff(x,nar=1)
+summary(fit1)
+d<-fit1$d
+y1<-diffseries(x,d)
+acf(y1)
+y2<-arima(y1,order=c(1,0,0))
+z<-resid(y2)
+acf(z)
+Box.test(z,lag=floor(log(n)),type=c("Ljung-Box"))
+```
+
+In this simpler configuration, the estimated parameters are much closer
+to the true simulated values. The estimated $d$ is near $0.4$ and the
+estimated AR coefficient is near $0.9$, so the model recovers both the
+long-memory and short-memory parts substantially better than in the
+previous ARFIMA$(2,d,1)$ examples.
+
+This suggests that ARFIMA estimation performs better when the underlying
+model structure is less complex.
+
+Now we will see what happens if we change to an ARFIMA$(0,d,1)$ model.
+
+## 1.5 ARFIMA(0,d,1) model
+
+We keep the same idea as in the previous section, but now the
+short-memory component is purely moving-average. This lets us compare
+whether estimation remains reasonably accurate when the model has only
+one MA parameter together with fractional differencing.
+
+```{r}
+library(fracdiff)
+set.seed(3)
+n <- 1000
+sample <- fracdiff.sim(n, ma = 0.9, d = 0.4)
+x <- sample$series
+plot(x, type = "l", main = "Simulated ARFIMA(0, 0.4, 1)")
+
+fit1 <- fracdiff(x, nma = 1, drange = c(0,0.5))
+summary(fit1)
+
+d <- fit1$d
+y1 <- diffseries(x, d)
+acf(y1, main = "ACF after Fractional Differencing")
+
+y2 <- arima(y1, order = c(0,0,1))
+z <- resid(y2)
+acf(z, main = "ACF of Residuals")
+
+Box.test(z, lag = floor(log(n)), type = "Ljung-Box")
+```
+
+In this case the estimation is again clearly better than in the
+ARFIMA$(2,d,1)$ examples. The estimated $d$ is close to the true value
+$0.4$, and the estimated MA coefficient is also close to the simulated
+$\theta = 0.9$.
+
+After removing the fractional dependence, the ACF of `y1` still shows
+the short-run pattern expected from an MA component, and after fitting
+the MA$(1)$ model the residual ACF no longer shows important
+autocorrelation. The Ljung-Box test is also non-significant, so the
+residuals are compatible with white noise.
+
+Together with Section 1.4, this confirms the main message of the
+practical: ARFIMA estimation tends to work better for simpler model
+structures, whereas richer ARMA dynamics can hide the true fractional
+parameter $d$.
+
+## 1.6 Real data: Australian residents
+
+We now apply ARFIMA modeling techniques to a real dataset. The `austres`
+dataset contains quarterly estimates of the Australian resident
+population between 1972 and 1993.
+
+```{r}
+library("datasets")
+x<-austres
+acf(x, main = "ACF of Australian residents (raw)")
+
+# First difference to handle trend
+dx<-diff(x)
+acf(dx, main = "ACF of differenced Australian residents")
+
+# Fit fractional d to the differenced series
+fdx<-fracdiff(dx,nar=0,nma=0, drange=c(0,0.5))
+summary(fdx)
+d=fdx$d
+d
+
+# Remove fractional noise
+resid<-diffseries(dx,d)
+y<-resid-mean(resid)
+
+acf(y, main = "Final ACF: white noise check")
+Box.test(y,lag=floor(log(length(x))),type=c("Ljung-Box"))
+```
+
+**Observations:**
+
+-   **ACF of Raw Data:** shows extremely slow linear decay, indicating
+    the series is **non-stationary** and has a strong trend.
+
+-   **ACF of Differenced Data:** after `diff(x)`, the trend is removed,
+    but significant autocorrelations remain at seasonal lags, which
+    shows that the series still has serial dependence.
+
+-   **Final ACF:** after removing the estimated fractional $d$
+    component, the remaining autocorrelations are much smaller, but the
+    plot can still show some moderate spikes, especially around seasonal
+    lags. So the result is closer to white noise than the raw series,
+    but not perfectly featureless.
+
+The **Ljung-Box test** on `y` does not reject independence at the $5\%$
+level, so this transformation removes a large part of the dependence.
+However, the estimated fractional parameter is not tiny, and the final
+ACF suggests that some structure may still remain. A cautious conclusion
+is therefore that first differencing plus fractional differencing gives
+a much more stationary series, but not necessarily a perfect white noise
+process.
+
+Overall, these results show that ARFIMA models are useful for capturing
+long-memory behavior, but their estimation is clearly more reliable in
+simpler specifications than in more complex ARMA settings.
