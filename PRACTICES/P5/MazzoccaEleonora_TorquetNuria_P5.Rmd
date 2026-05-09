@@ -11,7 +11,7 @@ editor_options:
     wrap: 72
 ---
 
-# PART 1 - Practice 12 R: ARFIMA Model
+# PART 1 - Practice 5: ARFIMA Model
 
 ## 1.1 Simulating the ARFIMA Model
 
@@ -321,3 +321,172 @@ process.
 Overall, these results show that ARFIMA models are useful for capturing
 long-memory behavior, but their estimation is clearly more reliable in
 simpler specifications than in more complex ARMA settings.
+
+
+# PART 2 - Practice 5: GARCH Models
+
+## 1.1 White but not IID noise residuals
+
+We analyze the daily returns of the S&P500 and discover that:
+- the returns themselves behave like white noise
+- but their variance changes over time
+- squared returns show strong autocorrelation, indicating volatility clustering
+
+This motivates ARCH/GARCH models.
+
+```{r}
+library(MASS)
+data(SP500)
+
+plot(SP500, type = "l", main = "S&P500 Daily Returns", ylab = "Returns")
+```
+
+**Explanation:**
+- SP500 contains daily stock returns
+- The plot shows returns fluctuating around zero
+- We observe periods of low and high volatility, which is a hallmark of financial data
+This already suggests heteroskedasticity (non-constant variance).
+
+```{r}
+acf(SP500)
+
+Box.test(SP500, type = "Ljung-Box")
+```
+
+**Explanation:**
+- The ACF (Autocorrelation Function) measures linear dependence.
+
+The Ljung-Box test is usually not significant for the raw returns, so the
+series is close to white noise in the mean. However, this does not mean
+that the conditional variance is constant. To see that, we remove the
+sample mean and look at the squared centered returns.
+
+```{r}
+m <- mean(SP500)
+x <- SP500 - m
+
+plot(x, type = "l", main = "Centered S&P500 Returns", ylab = "Centered returns")
+acf(x, main = "ACF of Centered Returns")
+
+y <- x^2
+plot(y, type = "l", main = "Squared Centered S&P500 Returns", ylab = "Squared returns")
+acf(y, main = "ACF of Squared Returns")
+Box.test(y, type = "Ljung-Box")
+```
+
+The squared series is no longer white noise. Its autocorrelation is
+typically much stronger than that of the returns themselves, which means
+that the volatility is clustered over time. This is exactly the pattern
+that ARCH and GARCH models are designed to describe.
+
+## 1.2 Generating ARCH and GARCH models
+
+We now simulate artificial ARCH and GARCH processes to see how they
+produce time-varying variance and dependence in the squared values.
+
+### ARCH(1) simulation
+
+```{r}
+a0 <- 0.25
+a1 <- 0.5
+x <- numeric(9999)
+x0 <- rnorm(1)
+
+for (i in 1:9999) {
+    x0 <- rnorm(1, sd = sqrt(a0 + a1 * x0^2))
+    x[i] <- x0
+}
+
+plot(x, type = "l", main = "Simulated ARCH(1)", ylab = "Value", xlab = "Time")
+acf(x, main = "ACF of ARCH(1) series")
+acf(x^2, main = "ACF of squared ARCH(1) series")
+```
+
+The ARCH(1) process does not usually show strong autocorrelation in the
+raw series, but the squared series exhibits dependence. That is
+the signature of changing conditional variance.
+
+### GARCH(1,1) simulation
+
+```{r}
+n <- 10000
+a0 <- 0.1
+a1 <- 0.4
+b1 <- 0.2
+w <- rnorm(n)
+y <- rep(0, n)
+h <- rep(0, n)
+
+for (i in 2:n) {
+    h[i] <- a0 + a1 * (y[i - 1]^2) + b1 * h[i - 1]
+    y[i] <- w[i] * sqrt(h[i])
+}
+
+plot(y, type = "l", main = "Simulated GARCH(1,1)", ylab = "Value", xlab = "Time")
+acf(y, main = "ACF of GARCH(1,1) series")
+acf(y^2, main = "ACF of squared GARCH(1,1) series")
+```
+
+Compared with ARCH, the GARCH model includes past conditional variance
+through the $b_1$ parameter. This produces smoother volatility
+clusters and a slower decay in the autocorrelation of squared returns.
+
+## 1.3 ARCH(2) simulation
+
+We now repeat the simulation for an ARCH(2) model.
+
+```{r}
+a0 <- 0.2
+a1 <- 0.4
+a2 <- 0.2
+n <- 10000
+x <- numeric(n)
+
+x[1:2] <- rnorm(2)
+
+for (i in 3:n) {
+    h_i <- a0 + a1 * x[i - 1]^2 + a2 * x[i - 2]^2
+    x[i] <- rnorm(1, sd = sqrt(h_i))
+}
+
+plot(x, type = "l", main = "Simulated ARCH(2)", ylab = "Value", xlab = "Time")
+acf(x, main = "ACF of ARCH(2) series")
+acf(x^2, main = "ACF of squared ARCH(2) series")
+```
+
+The ARCH(2) model extends ARCH(1) by allowing the current variance to
+depend on the last two squared observations. As before, the raw series
+is nearly uncorrelated, while the squared series retains clear serial
+dependence.
+
+## 1.4 Fitting GARCH models
+
+Finally, we fit a GARCH model to the S&P500 returns.
+
+```{r}
+library(MASS)
+library(tseries)
+data(SP500)
+
+plot(SP500, type = "l", main = "S&P500 Daily Returns", ylab = "Returns")
+
+x <- SP500 - mean(SP500)
+plot(x, type = "l", main = "Centered S&P500 Returns", ylab = "Centered returns")
+
+sp <- garch(x, trace = FALSE)
+res <- sp$res[-1]
+
+plot(res, type = "l", main = "GARCH residuals", ylab = "Residuals")
+acf(res, main = "ACF of GARCH residuals")
+acf(res^2, main = "ACF of squared GARCH residuals")
+
+confint(sp)
+
+garch(x, order = c(1, 1), trace = FALSE)
+```
+
+The fitted GARCH model should remove most of the volatility clustering
+from the centered returns. A good fit is suggested when the residuals
+and their squares no longer show strong autocorrelation, and the
+confidence intervals provide an idea of which parameters are clearly
+different from zero.
