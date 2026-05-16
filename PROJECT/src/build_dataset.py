@@ -136,10 +136,14 @@ def _get_official_direction_stations(project_dir):
     return sorted(set(direction1_order) | set(direction2_order))
 
 
+def _build_train_instance_id(train_id_series, service_date_series):
+    return train_id_series.astype(str) + "__" + service_date_series.astype(str)
+
+
 def _infer_directions(tt_df, direction1_order, direction2_order):
     train_direction = {}
 
-    for train_id, group in tt_df.groupby("train_id"):
+    for train_instance_id, group in tt_df.groupby("train_instance_id"):
         station_names = [
             station
             for station in group["station_name_normalized"].tolist()
@@ -147,7 +151,7 @@ def _infer_directions(tt_df, direction1_order, direction2_order):
         ]
 
         if len(station_names) < 2:
-            train_direction[train_id] = np.nan
+            train_direction[train_instance_id] = np.nan
             continue
 
         first_station = station_names[0]
@@ -157,13 +161,13 @@ def _infer_directions(tt_df, direction1_order, direction2_order):
         dir2_delta = direction2_order[last_station] - direction2_order[first_station]
 
         if dir1_delta > 0 and dir2_delta < 0:
-            train_direction[train_id] = "direction1"
+            train_direction[train_instance_id] = "direction1"
         elif dir2_delta > 0 and dir1_delta < 0:
-            train_direction[train_id] = "direction2"
+            train_direction[train_instance_id] = "direction2"
         else:
-            train_direction[train_id] = np.nan
+            train_direction[train_instance_id] = np.nan
 
-    tt_df["direction"] = tt_df["train_id"].map(train_direction)
+    tt_df["direction"] = tt_df["train_instance_id"].map(train_direction)
     return tt_df
 
 
@@ -181,6 +185,15 @@ def _assign_timetable_stop_sequence(tt_df, direction1_order, direction2_order):
 
     tt_df["stop_sequence"] = tt_df.apply(lookup_sequence, axis=1).astype("Float64")
     return tt_df
+
+
+def _coalesce_service_datetimes(df):
+    service_dt = df["planned_arrival"].copy()
+    service_dt = service_dt.fillna(df["planned_departure"])
+    service_dt = service_dt.fillna(df["actual_arrival"])
+    service_dt = service_dt.fillna(df["actual_departure"])
+    service_dt = service_dt.fillna(df["timestamp"])
+    return pd.to_datetime(service_dt, errors="coerce")
 
 
 def _aggregate_timetable_file(file_path, r1_station_ids):
@@ -208,12 +221,15 @@ def _aggregate_timetable_file(file_path, r1_station_ids):
 
     df["train_id"] = df["train_id"].astype(str)
     df["station_id"] = df["station_id"].astype(str)
+    df["service_datetime"] = _coalesce_service_datetimes(df)
+    df["service_date_key"] = df["service_datetime"].dt.date
+    df = df.dropna(subset=["service_date_key"])
     if r1_station_ids:
         df = df[df["station_id"].isin(r1_station_ids)]
-    df = df.sort_values(by=["train_id", "station_id", "timestamp"])
+    df = df.sort_values(by=["service_date_key", "train_id", "station_id", "timestamp"])
 
     return (
-        df.groupby(["train_id", "station_id"], as_index=False)
+        df.groupby(["service_date_key", "train_id", "station_id"], as_index=False)
         .agg(
             first_timestamp=("timestamp", "first"),
             last_timestamp=("timestamp", "last"),
@@ -241,11 +257,11 @@ def _aggregate_timetable_history(tt_files, r1_station_ids):
 
     tt_partial = pd.concat(aggregated_files, ignore_index=True)
     tt_partial = tt_partial.sort_values(
-        by=["train_id", "station_id", "first_timestamp", "last_timestamp"]
+        by=["service_date_key", "train_id", "station_id", "first_timestamp", "last_timestamp"]
     )
 
     tt_df = (
-        tt_partial.groupby(["train_id", "station_id"], as_index=False)
+        tt_partial.groupby(["service_date_key", "train_id", "station_id"], as_index=False)
         .agg(
             first_planned_arrival=("first_planned_arrival", "first"),
             last_planned_arrival=("last_planned_arrival", "last"),
@@ -340,6 +356,10 @@ def build_features(data_dir):
 
     tt_df["planned_arrival_dt"] = tt_df["last_planned_arrival"]
     tt_df["actual_arrival_dt"] = tt_df["last_actual_arrival"]
+    tt_df["train_instance_id"] = _build_train_instance_id(
+        tt_df["train_id"],
+        tt_df["service_date_key"],
+    )
 
     tt_df["delay_type_1"] = (
         tt_df["last_actual_arrival"] - tt_df["first_planned_arrival"]
@@ -390,10 +410,10 @@ def build_features(data_dir):
     direction1_order, direction2_order = _get_direction_station_orders(project_dir)
 
     # 3. Create seq/lag features for the previous station delay
-    # sort chronologically to get valid sequence per train journey
-    tt_df = tt_df.sort_values(by=["train_id", "planned_arrival_dt"])
+    # sort chronologically to get valid sequence per train journey instance
+    tt_df = tt_df.sort_values(by=["train_instance_id", "planned_arrival_dt"])
     tt_df["prev_station_delay"] = (
-        tt_df.groupby("train_id")["target_delay"].shift(1).fillna(0)
+        tt_df.groupby("train_instance_id")["target_delay"].shift(1).fillna(0)
     )  # fill first station delay with 0
 
     tt_df = _infer_directions(tt_df, direction1_order, direction2_order)
