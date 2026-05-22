@@ -3,10 +3,10 @@ import glob
 import re
 import unicodedata
 from difflib import get_close_matches
-from datetime import datetime
+from datetime import datetime, date as date_type
 import pandas as pd
 import numpy as np
-from loader import get_r1_station_ids, load_weather
+from utils.loader import get_r1_station_ids, load_weather
 
 
 def _normalize_station_name(name):
@@ -91,6 +91,8 @@ def _load_hourly_weather(target_hours=None):
     # The weather feed is irregular and skips some hours. For feature building we
     # normalize it to a complete hourly grid and carry the last available weather
     # forward, so every train row can attach the most recent known conditions.
+    # bfill() handles the rare case where the series starts with missing hours
+    # (no prior observation to carry forward from).
     fill_columns = [
         "temperature",
         "precipitation",
@@ -98,7 +100,7 @@ def _load_hourly_weather(target_hours=None):
         "weathercode",
         "cloudcover",
     ]
-    hourly_weather[fill_columns] = hourly_weather[fill_columns].ffill()
+    hourly_weather[fill_columns] = hourly_weather[fill_columns].ffill().bfill()
     hourly_weather["weather_was_carried_forward"] = (
         ~hourly_weather["weather_from_raw_observation"]
     ).astype("int8")
@@ -188,11 +190,14 @@ def _assign_timetable_stop_sequence(tt_df, direction1_order, direction2_order):
 
 
 def _coalesce_service_datetimes(df):
+    # Use only planned/actual times to derive the service date.
+    # The snapshot timestamp is deliberately excluded: it reflects when the API
+    # was scraped, not when the service ran, so using it as a fallback would
+    # assign rows to the wrong service date.
     service_dt = df["planned_arrival"].copy()
     service_dt = service_dt.fillna(df["planned_departure"])
     service_dt = service_dt.fillna(df["actual_arrival"])
     service_dt = service_dt.fillna(df["actual_departure"])
-    service_dt = service_dt.fillna(df["timestamp"])
     return pd.to_datetime(service_dt, errors="coerce")
 
 
@@ -367,12 +372,16 @@ def build_features(data_dir):
     tt_df["delay_type_2"] = (
         tt_df["last_actual_arrival"] - tt_df["last_planned_arrival"]
     ).dt.total_seconds() / 60.0
-    tt_df["delay_masking_minutes"] = tt_df["delay_type_1"] - tt_df["delay_type_2"] # the higher this is, the more Renfe adjusts the schedule due to delay
+    tt_df["delay_masking_minutes"] = tt_df["delay_type_1"] - tt_df["delay_type_2"]  # = last_planned_arrival - first_planned_arrival (schedule adjustment: how much Renfe moved the planned time forward to mask accumulated delay)
 
     # 1. Temporal bounds and null checks (data cleaning)
     tt_df["target_delay"] = tt_df["delay_type_2"]
     tt_df = tt_df.dropna(subset=["planned_arrival_dt", "actual_arrival_dt", "target_delay"])
     tt_df = tt_df[(tt_df["target_delay"] >= -60) & (tt_df["target_delay"] <= 300)]
+    # Apply the same bounds to delay_type_1 so that delay_masking_minutes is not
+    # contaminated by API artefacts where first_planned_arrival was recorded from
+    # a different day's snapshot (producing spurious +-1440-minute values).
+    tt_df = tt_df[(tt_df["delay_type_1"] >= -60) & (tt_df["delay_type_1"] <= 300)]
 
     # 2. Extract base temporal features
     tt_df["hour"] = tt_df["planned_arrival_dt"].dt.hour
@@ -383,6 +392,15 @@ def build_features(data_dir):
     tt_df["hour"] = tt_df["hour"].astype("int8")
     tt_df["day_of_week"] = tt_df["day_of_week"].astype("int8")
     tt_df["is_weekend"] = tt_df["is_weekend"].astype("int8")
+
+    # Drop partial boundary dates: the first and last files in the collection window
+    # may represent incomplete days (only a few snapshots). Keep only dates where
+    # data collection was running for the full day (from 2026-03-15 onwards and up
+    # to the last complete day 2026-05-21).
+    tt_df = tt_df[
+        (tt_df["service_date"] >= date_type(2026, 3, 15))
+        & (tt_df["service_date"] <= date_type(2026, 5, 21))
+    ]
 
     current_dir = os.path.dirname(os.path.abspath(__file__))
     project_dir = os.path.abspath(os.path.join(current_dir, ".."))
@@ -410,8 +428,10 @@ def build_features(data_dir):
     direction1_order, direction2_order = _get_direction_station_orders(project_dir)
 
     # 3. Create seq/lag features for the previous station delay
-    # sort chronologically to get valid sequence per train journey instance
-    tt_df = tt_df.sort_values(by=["train_instance_id", "planned_arrival_dt"])
+    # sort chronologically to get valid sequence per train journey instance.
+    # station_id is added as a secondary key so ties in planned_arrival_dt are
+    # broken consistently across runs.
+    tt_df = tt_df.sort_values(by=["train_instance_id", "planned_arrival_dt", "station_id"])
     tt_df["prev_station_delay"] = (
         tt_df.groupby("train_instance_id")["target_delay"].shift(1).fillna(0)
     )  # fill first station delay with 0

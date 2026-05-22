@@ -3,7 +3,7 @@ from datetime import datetime
 
 import pandas as pd
 
-from loader import load_weather
+from utils.loader import load_weather
 
 
 def build_hourly_weather_dataset():
