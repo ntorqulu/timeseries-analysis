@@ -1,7 +1,8 @@
 import sys
 import numpy as np
-import network as Network
-import data as Data
+import network as network_module
+import data as data_module
+import os
 
 #Retrieving arguments from the command line
 test_name = str(sys.argv[1])
@@ -11,35 +12,39 @@ num_nodes = int(sys.argv[4])
 input_probability = np.float64(sys.argv[5])
 reservoir_probability = np.float64(sys.argv[6])
 
-d = Data.Data(80) #80% training 20% testing
+data_obj = data_module.Data(80) #80% training 20% testing
 
-Network = Network.Network()
+net = network_module.Network()
 
 #Setting the right data for all the possible combinations of problems and classifiers
 
+script_dir = os.path.dirname(__file__)
+
 if test_name == '5s':
-	d.import_data('dataSorted_allOrientations.mat')
+	data_file = os.path.join(script_dir, 'dataSorted_allOrientations.mat')
+	data_obj.import_data(data_file)
 	if classifier == 'lin':
-		d.build_train_labels_lin()
-		d.build_test_labels_lin()
-		
+		data_obj.build_train_labels_lin()
+		data_obj.build_test_labels_lin()
+        
 	elif classifier == 'log':
-		d.build_train_labels_log()
-		d.build_test_labels_log()
+		data_obj.build_train_labels_log()
+		data_obj.build_test_labels_log()
 
 	else:
 		print("This classifier is not supported for this test.")
 		sys.exit(1)
 
-	d.build_training_matrix()
-	d.build_test_matrix()
-	Network.L = 5
+	data_obj.build_training_matrix()
+	data_obj.build_test_matrix()
+	net.L = 5
 
 elif test_name == 'lvr':
 	if classifier == 'log' or classifier == '1nn':
-		d.import_data('dataSorted_leftAndRight.mat')
-		d.leftvsright_mixed()
-		Network.L = 1
+		data_file = os.path.join(script_dir, 'dataSorted_leftAndRight.mat')
+		data_obj.import_data(data_file)
+		data_obj.leftvsright_mixed()
+		net.L = 1
 
 	else: 
 		print("This classifier is not supported for this test.")
@@ -50,44 +55,44 @@ else:
 	sys.exit(1)
 
 #Filtering the data
-if filter_name not in d.spectral_bands.keys():
+if filter_name not in data_obj.spectral_bands.keys():
 	print("The specified frequency band is not supported")
 	sys.exit(1)
 
-d.training_data = d.filter_data(d.training_data,filter_name)
-d.test_data = d.filter_data(d.test_data,filter_name)
+data_obj.training_data = data_obj.filter_data(data_obj.training_data,filter_name)
+data_obj.test_data = data_obj.filter_data(data_obj.test_data,filter_name)
 
 
 #Computing the absolute value of the data, to get rid of negative numbers
-d.training_data = np.abs(d.training_data)
-d.test_data = np.abs(d.test_data)
+data_obj.training_data = np.abs(data_obj.training_data)
+data_obj.test_data = np.abs(data_obj.test_data)
 
 ########################
 # Define the network parameters
 ########################
 
-Network.T = d.training_data.shape[1] #Number of training time steps
-Network.n_min = 2540 #Number time steps dismissed
-Network.K = 128 #Input layer size
-Network.N = num_nodes #Reservoir layer size
+net.T = data_obj.training_data.shape[1] #Number of training time steps
+net.n_min = 2540 #Number time steps dismissed
+net.K = 128 #Input layer size
+net.N = num_nodes #Reservoir layer size
 
 
-Network.u = d.training_data
-Network.y_teach = d.training_results
+net.u = data_obj.training_data
+net.y_teach = data_obj.training_results
 
-Network.setup_network(d,num_nodes,input_probability,reservoir_probability,d.data.shape[-1])
+net.setup_network(data_obj,num_nodes,input_probability,reservoir_probability,data_obj.data.shape[-1])
 
-Network.train_network(d.data.shape[-1],classifier,d.num_columns, d.num_trials_train, d.train_labels, Network.N) 
+net.train_network(data_obj.data.shape[-1],classifier,data_obj.num_columns, data_obj.num_trials_train, data_obj.train_labels, net.N) 
 
-Network.mean_test_matrix = np.zeros([Network.N,d.num_trials_test,d.data.shape[-1]])
+net.mean_test_matrix = np.zeros([net.N,data_obj.num_trials_test,data_obj.data.shape[-1]])
 
-Network.test_network(d.test_data, d.num_columns,d.num_trials_test, Network.N, d.data.shape[-1], t_autonom=d.test_data.shape[1])
+net.test_network(data_obj.test_data, data_obj.num_columns,data_obj.num_trials_test, net.N, data_obj.data.shape[-1], t_autonom=data_obj.test_data.shape[1])
 
 if classifier == 'lin':
-	print(f'Performance for {test_name} using {classifier} : {d.accuracy_lin(Network.regressor.predict(Network.mean_test_matrix.T),d.test_labels)}')
+	print(f'Performance for {test_name} using {classifier} : {data_obj.accuracy_lin(net.regressor.predict(net.mean_test_matrix.T),data_obj.test_labels)}')
 
 elif classifier == 'log':
-	print(f'Performance for {test_name} using {classifier} : {Network.regressor.score(Network.mean_test_matrix.T,d.test_labels.T)}')
+	print(f'Performance for {test_name} using {classifier} : {net.regressor.score(net.mean_test_matrix.T,data_obj.test_labels.T)}')
 
 elif classifier == '1nn':
-	print(f'Performance for {test_name} using {classifier} : {Network.regressor.score(Network.mean_test_matrix.T,d.test_labels)}')
+	print(f'Performance for {test_name} using {classifier} : {net.regressor.score(net.mean_test_matrix.T,data_obj.test_labels)}')

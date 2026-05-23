@@ -1,2 +1,4 @@
 .DS_Store
 .Rhistory
+dataSorted_allOrientations.mat
+dataSorted_leftAndRight.mat
