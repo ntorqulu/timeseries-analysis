@@ -392,7 +392,7 @@ svg text{{font-family:'DM Mono',monospace;fill:#9e9e9e}}
   <div style="display:flex;align-items:center;gap:11px">
     <div class="logo-badge">R1</div>
     <div>
-      <div class="logo-label">Rodalies Delay Intelligence</div>
+      <div class="logo-label">Rodalies Delay Analysis</div>
       <div class="logo-sub">MOLINS DE REI · MAÇANET-MASSANES · 27 STATIONS</div>
     </div>
   </div>
