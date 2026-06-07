@@ -55,7 +55,7 @@ DEFAULT_OUT         = _ABOVE_ROOT / "docs"  / "index.html"
 
 # ── CLI ────────────────────────────────────────────────────────────────────────
 def parse_args():
-    p = argparse.ArgumentParser(description="Generate R1 delay intelligence HTML app")
+    p = argparse.ArgumentParser(description="Generate R1 delay analysis HTML app")
     p.add_argument("--dynamic-dir", default=DEFAULT_DYNAMIC_DIR, type=Path)
     p.add_argument("--static-dir",  default=DEFAULT_STATIC_DIR,  type=Path)
     p.add_argument("--models-dir",  default=DEFAULT_MODELS_DIR,  type=Path)
@@ -318,7 +318,7 @@ def build_html(hourly_js, daily_js, station_js, sarima_js, sarimax_js, garch_js,
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>R1 Rodalies — Delay Intelligence</title>
+<title>R1 Rodalies Delay Analysis</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
