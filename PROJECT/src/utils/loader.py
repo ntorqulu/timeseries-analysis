@@ -18,10 +18,17 @@ Example
 from __future__ import annotations
 
 import logging
+import sys
 from datetime import datetime
 from pathlib import Path
 
 import pandas as pd
+
+# Ensure the src directory is on sys.path so that `from utils.config import ...`
+# works regardless of the working directory from which this module is used.
+_src = str(Path(__file__).resolve().parent.parent)
+if _src not in sys.path:
+    sys.path.insert(0, _src)
 
 from utils.config import (
     STATIC_DIR,

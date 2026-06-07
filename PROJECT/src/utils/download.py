@@ -1,12 +1,15 @@
 """
 download.py — Download parquet files from the shared Google Drive folders.
 
-Usage (from repo root):
-    python src/download.py                        # download everything available
-    python src/download.py --tables trains timetables
-    python src/download.py --start 2026_03_14 --end 2026_03_20
-    python src/download.py --static-only
-    python src/download.py --dynamic-only
+Usage:
+    python src/utils/download.py                  # from PROJECT/ directory
+    python -m src.utils.download                  # from PROJECT/ directory
+
+Options:
+    python src/utils/download.py --tables trains timetables
+    python src/utils/download.py --start 2026_03_14 --end 2026_03_20
+    python src/utils/download.py --static-only
+    python src/utils/download.py --dynamic-only
 
 Authentication:
     First run triggers a browser OAuth flow; token is cached in token.json.
@@ -19,6 +22,7 @@ from __future__ import annotations
 import argparse
 import io
 import logging
+import sys
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -28,6 +32,12 @@ from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseDownload
+
+# Ensure the src directory is on sys.path so that `from utils.config import ...`
+# works regardless of the working directory from which the script is invoked.
+_src = str(Path(__file__).resolve().parent.parent)
+if _src not in sys.path:
+    sys.path.insert(0, _src)
 
 from utils.config import DATA_DIR, DRIVE_FOLDER, STATIC_DIR, DYNAMIC_DIR, DATE_FMT
 
