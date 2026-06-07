@@ -45,11 +45,12 @@ import pandas as pd
 # ── PATH DEFAULTS — always relative to this script file, never to cwd ─────────
 _HERE = Path(__file__).resolve().parent   # PROJECT/app/
 _ROOT = _HERE.parent                      # PROJECT/
+_ABOVE_ROOT = _ROOT.parent                # PROJECT/..  (for outputting to sibling folder)
 
 DEFAULT_DYNAMIC_DIR = _ROOT / "data" / "dynamic"
 DEFAULT_STATIC_DIR  = _ROOT / "data" / "static"
 DEFAULT_MODELS_DIR  = _ROOT / "data" / "models"
-DEFAULT_OUT         = _ROOT / "docs"  / "index.html"
+DEFAULT_OUT         = _ABOVE_ROOT / "docs"  / "index.html"
 
 
 # ── CLI ────────────────────────────────────────────────────────────────────────
@@ -915,9 +916,9 @@ function onHourChange()    {{
 def main():
     args = parse_args()
 
-    print(f"📂 Dynamic dir : {args.dynamic_dir}")
-    print(f"📂 Static dir  : {args.static_dir}")
-    print(f"📂 Models dir  : {args.models_dir}")
+    print(f" Dynamic dir : {args.dynamic_dir}")
+    print(f" Static dir  : {args.static_dir}")
+    print(f" Models dir  : {args.models_dir}")
     if args.date_from or args.date_to:
         print(f"   Date range  : {args.date_from or 'start'} → {args.date_to or 'end'}")
 
@@ -937,12 +938,12 @@ def main():
           f"  [{wx_paths[0].name} … {wx_paths[-1].name}]")
 
     # ── Weather: all files are tiny (~46 rows each) — load all at once ─────────
-    print("\n📡 Loading weather …")
+    print("\n Loading weather …")
     wx_lookup = load_weather_lookup(wx_paths)
     print(f"   {len(wx_lookup)} hourly temperature readings")
 
     # ── Timetables: stream one file at a time ──────────────────────────────────
-    print("\n🔧 Streaming timetables …")
+    print("\n Streaming timetables …")
     hourly, daily, station_delays = build_datasets(
         tt_paths, wx_lookup, r1_station_ids, r1_station_map
     )
@@ -966,7 +967,7 @@ def main():
             )
         return path.read_text()
 
-    print("\n📦 Loading models …")
+    print("\n Loading models …")
     sarima_js  = load_json(args.models_dir / "sarima_params.json")
     sarimax_js = load_json(args.models_dir / "sarimax_params.json")
     garch_js   = load_json(args.models_dir / "garch_params.json")
@@ -980,7 +981,7 @@ def main():
     args.out.write_text(html, encoding="utf-8")
 
     size_kb = args.out.stat().st_size // 1024
-    print(f"\n✅ Generated : {args.out}  ({size_kb} KB)")
+    print(f"\n Generated : {args.out}  ({size_kb} KB)")
     print(f"   Preview   : python -m http.server 8000 --directory {args.out.parent}")
     print(f"   Deploy    : git add {args.out} && git commit -m 'update dashboard' && git push")
 
