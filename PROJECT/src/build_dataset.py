@@ -1,11 +1,20 @@
-import os
-import glob
 import re
+import sys
 import unicodedata
 from difflib import get_close_matches
 from datetime import datetime, date as date_type
+from pathlib import Path
+
 import pandas as pd
 import numpy as np
+
+# Ensure the src directory is on sys.path so that `from utils.loader import ...`
+# works regardless of the working directory from which this script is invoked.
+_src = str(Path(__file__).resolve().parent)
+if _src not in sys.path:
+    sys.path.insert(0, _src)
+
+from utils.config import DATE_FMT
 from utils.loader import get_r1_station_ids, load_weather
 
 
@@ -30,7 +39,7 @@ def _normalize_station_name(name):
 
 
 def _load_station_metadata(data_dir):
-    stations_path = os.path.join(data_dir, "static", "stations.parquet")
+    stations_path = Path(data_dir) / "static" / "stations.parquet"
     stations_df = pd.read_parquet(stations_path, columns=["station_id", "name"])
     stations_df = stations_df.rename(columns={"name": "station_name"})
     stations_df["station_id"] = stations_df["station_id"].astype(str)
@@ -39,12 +48,7 @@ def _load_station_metadata(data_dir):
 
 
 def _load_holiday_calendar(project_dir):
-    holidays_path = os.path.join(
-        project_dir,
-        "EDA",
-        "Calendario_Laboral_Catalunya",
-        "Calendari_laboral_de_Catalunya_2026.csv",
-    )
+    holidays_path = Path(project_dir) / "EDA" / "Calendario_Laboral_Catalunya" / "Calendari_laboral_de_Catalunya_2026.csv"
     holidays_df = pd.read_csv(holidays_path)
     holidays_df["service_date"] = pd.to_datetime(holidays_df["date"], errors="coerce").dt.date
     return holidays_df[["service_date", "is_holiday"]].drop_duplicates()
@@ -91,8 +95,9 @@ def _load_hourly_weather(target_hours=None):
     # The weather feed is irregular and skips some hours. For feature building we
     # normalize it to a complete hourly grid and carry the last available weather
     # forward, so every train row can attach the most recent known conditions.
-    # bfill() handles the rare case where the series starts with missing hours
-    # (no prior observation to carry forward from).
+    # Only ffill() is used — bfill() would leak future information into past hours
+    # (a look-ahead issue). Any remaining leading NaN hours are left as NaN and
+    # will be dropped later when merging with the feature table.
     fill_columns = [
         "temperature",
         "precipitation",
@@ -100,7 +105,7 @@ def _load_hourly_weather(target_hours=None):
         "weathercode",
         "cloudcover",
     ]
-    hourly_weather[fill_columns] = hourly_weather[fill_columns].ffill().bfill()
+    hourly_weather[fill_columns] = hourly_weather[fill_columns].ffill()
     hourly_weather["weather_was_carried_forward"] = (
         ~hourly_weather["weather_from_raw_observation"]
     ).astype("int8")
@@ -112,10 +117,10 @@ def _load_hourly_weather(target_hours=None):
 
 
 def _get_direction_station_orders(project_dir):
-    timetable_dir = os.path.join(project_dir, "EDA", "official_timetables")
+    timetable_dir = Path(project_dir) / "EDA" / "official_timetables"
 
-    direction1_df = pd.read_csv(os.path.join(timetable_dir, "R1_direction1_schedules.csv"), nrows=0)
-    direction2_df = pd.read_csv(os.path.join(timetable_dir, "R1_direction2_schedules.csv"), nrows=0)
+    direction1_df = pd.read_csv(timetable_dir / "R1_direction1_schedules.csv", nrows=0)
+    direction2_df = pd.read_csv(timetable_dir / "R1_direction2_schedules.csv", nrows=0)
 
     direction1_order = [col for col in direction1_df.columns if col != "Day_Type"]
     direction2_order = [col for col in direction2_df.columns if col != "Day_Type"]
@@ -127,10 +132,10 @@ def _get_direction_station_orders(project_dir):
 
 
 def _get_official_direction_stations(project_dir):
-    timetable_dir = os.path.join(project_dir, "EDA", "official_timetables")
+    timetable_dir = Path(project_dir) / "EDA" / "official_timetables"
 
-    direction1_df = pd.read_csv(os.path.join(timetable_dir, "R1_direction1_schedules.csv"), nrows=0)
-    direction2_df = pd.read_csv(os.path.join(timetable_dir, "R1_direction2_schedules.csv"), nrows=0)
+    direction1_df = pd.read_csv(timetable_dir / "R1_direction1_schedules.csv", nrows=0)
+    direction2_df = pd.read_csv(timetable_dir / "R1_direction2_schedules.csv", nrows=0)
 
     direction1_order = [col for col in direction1_df.columns if col != "Day_Type"]
     direction2_order = [col for col in direction2_df.columns if col != "Day_Type"]
@@ -252,7 +257,7 @@ def _aggregate_timetable_history(tt_files, r1_station_ids):
     aggregated_files = []
 
     for idx, file_path in enumerate(sorted(tt_files), start=1):
-        print(f"Aggregating timetable file {idx}/{len(tt_files)}: {os.path.basename(file_path)}")
+        print(f"Aggregating timetable file {idx}/{len(tt_files)}: {Path(file_path).name}")
         aggregated = _aggregate_timetable_file(file_path, r1_station_ids)
         if not aggregated.empty:
             aggregated_files.append(aggregated)
@@ -281,15 +286,15 @@ def _aggregate_timetable_history(tt_files, r1_station_ids):
 
 
 def save_features_csv(tt_df, output_path):
-    output_dir = os.path.dirname(output_path)
-    os.makedirs(output_dir, exist_ok=True)
+    output_path = Path(output_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
     tt_df.to_csv(output_path, index=False)
     print(f"\nDataset saved to: {output_path}")
 
 
 def save_unmatched_station_mapping_csv(tt_df, official_station_names, output_path):
-    output_dir = os.path.dirname(output_path)
-    os.makedirs(output_dir, exist_ok=True)
+    output_path = Path(output_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
 
     official_name_map = {
         _normalize_station_name(station): station for station in official_station_names
@@ -354,7 +359,7 @@ def build_features(data_dir):
     #   - workday / weekend / holiday / holiday&weekend for Catalunya
     #   - direction (from R1_direction1_schedules.csv, R1_direction2_schedules.csv)
 
-    tt_files = glob.glob(os.path.join(data_dir, "dynamic", "timetables", "*.parquet"))
+    tt_files = [str(p) for p in Path(data_dir).glob("dynamic/timetables/*.parquet")]
     r1_station_ids = get_r1_station_ids()
     tt_df = _aggregate_timetable_history(tt_files, r1_station_ids)
     print(f"Timetable history aggregated for R1: {len(tt_df)} train/station rows")
@@ -395,15 +400,28 @@ def build_features(data_dir):
 
     # Drop partial boundary dates: the first and last files in the collection window
     # may represent incomplete days (only a few snapshots). Keep only dates where
-    # data collection was running for the full day (from 2026-03-15 onwards and up
-    # to the last complete day 2026-05-21).
-    tt_df = tt_df[
-        (tt_df["service_date"] >= date_type(2026, 3, 15))
-        & (tt_df["service_date"] <= date_type(2026, 5, 21))
-    ]
+    # data collection was running for the full day.
+    # Dates are derived automatically from the available parquet filenames so that
+    # new data is included without manually bumping hardcoded constants.
+    tt_files_sorted = sorted(Path(data_dir).glob("dynamic/timetables/*.parquet"))
+    if len(tt_files_sorted) >= 2:
+        # Extract date tokens from the *second* and *second-to-last* files to
+        # skip potentially incomplete first/last days.
+        def _date_from_filename(path: Path) -> date_type:
+            stem = path.stem
+            parts = stem.split("_", 1)
+            token = parts[1] if len(parts) == 2 else parts[0]
+            return datetime.strptime(token, DATE_FMT).date()
+        min_service_date = _date_from_filename(tt_files_sorted[1])
+        max_service_date = _date_from_filename(tt_files_sorted[-2])
+        tt_df = tt_df[
+            (tt_df["service_date"] >= min_service_date)
+            & (tt_df["service_date"] <= max_service_date)
+        ]
+        print(f"Service date bounds: {min_service_date} to {max_service_date}")
 
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    project_dir = os.path.abspath(os.path.join(current_dir, ".."))
+    current_dir = Path(__file__).resolve().parent
+    project_dir = current_dir.parent
 
     stations_df = _load_station_metadata(data_dir)
     tt_df = tt_df.merge(stations_df, on="station_id", how="left")
@@ -450,16 +468,12 @@ def build_features(data_dir):
 
 
 if __name__ == "__main__":
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    data_dir = os.path.join(current_dir, "..", "data")
-    project_dir = os.path.abspath(os.path.join(current_dir, ".."))
+    current_dir = Path(__file__).resolve().parent
+    project_dir = current_dir.parent
+    data_dir = project_dir / "data"
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    output_path = os.path.join(data_dir, "processed", f"features_{timestamp}.csv")
-    station_mapping_output_path = os.path.join(
-        data_dir,
-        "processed",
-        f"unmatched_direction_stations_{timestamp}.csv",
-    )
+    output_path = data_dir / "processed" / f"features_{timestamp}.csv"
+    station_mapping_output_path = data_dir / "processed" / f"unmatched_direction_stations_{timestamp}.csv"
     tt_df = build_features(data_dir)
     save_features_csv(tt_df, output_path)
     official_station_names = _get_official_direction_stations(project_dir)

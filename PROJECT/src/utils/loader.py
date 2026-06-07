@@ -84,29 +84,31 @@ def _concat(files: list[Path]) -> pd.DataFrame:
 _r1_station_ids: set[str] | None = None
 
 
-def get_r1_station_ids() -> set[str]:
-    """
-    Return the set of station IDs that belong to the R1 line.
+def _load_r1_station_mapping_csv() -> set[str] | None:
+    """Try to load R1 station IDs from the static mapping CSV.
 
-    The lines.parquet table only contains metadata (name, origin, destination,
-    stations_count) with no per-station IDs, and stations.parquet has no
-    line_id column. So we derive R1 stations from the trains dynamic table:
-    sample up to 3 recent files, filter to line_id == R1, and collect all
-    station IDs seen in current_station_id and next_station_id.
+    Returns None if the file doesn't exist, which triggers the fallback
+    derivation from trains data.
     """
-    global _r1_station_ids
-    if _r1_station_ids is not None:
-        return _r1_station_ids
+    mapping_path = STATIC_DIR / "r1_station_mapping.csv"
+    if not mapping_path.exists():
+        log.warning("r1_station_mapping.csv not found — falling back to trains data")
+        return None
+    mapping = pd.read_csv(mapping_path)
+    ids = set(mapping["station_id"].astype(str).dropna().unique())
+    log.info(f"R1 station IDs loaded from static mapping: {len(ids)} stations")
+    return ids
 
+
+def _derive_r1_station_ids_from_trains() -> set[str]:
+    """Fallback: derive R1 station IDs by sampling the 3 most recent trains files."""
     trains_dir = DYNAMIC_DIR / "trains"
     files = sorted(trains_dir.glob("trains_*.parquet")) if trains_dir.exists() else []
 
     if not files:
         log.warning("No trains files found — cannot derive R1 station IDs")
-        _r1_station_ids = set()
-        return _r1_station_ids
+        return set()
 
-    # Sample up to 3 recent files to get a complete picture of all R1 stops
     sample = files[-3:]
     frames = [
         pd.read_parquet(f, columns=["line_id", "current_station_id", "next_station_id"])
@@ -116,8 +118,7 @@ def get_r1_station_ids() -> set[str]:
 
     if "line_id" not in df.columns:
         log.warning("trains table has no line_id column — cannot filter R1 stations")
-        _r1_station_ids = set()
-        return _r1_station_ids
+        return set()
 
     r1 = df[df["line_id"].astype(str).str.upper() == R1_LINE_ID.upper()]
     ids = (
@@ -127,9 +128,27 @@ def get_r1_station_ids() -> set[str]:
     ids.discard("nan")
     ids.discard("<NA>")
     ids.discard("")
+    log.info(f"R1 station IDs derived from trains data: {len(ids)} stations")
+    return ids
+
+
+def get_r1_station_ids() -> set[str]:
+    """
+    Return the set of station IDs that belong to the R1 line.
+
+    Priority:
+    1. Static mapping CSV (data/static/r1_station_mapping.csv) — authoritative list.
+    2. Dynamic derivation from trains parquet (fallback if CSV is missing).
+    """
+    global _r1_station_ids
+    if _r1_station_ids is not None:
+        return _r1_station_ids
+
+    ids = _load_r1_station_mapping_csv()
+    if ids is None:
+        ids = _derive_r1_station_ids_from_trains()
 
     _r1_station_ids = ids
-    log.info(f"R1 station IDs resolved from trains data: {len(ids)} stations")
     return _r1_station_ids
 
 
