@@ -1,4 +1,4 @@
-name: jupyter_env
+name: rodalies_env
 channels:
   - conda-forge
   - defaults
@@ -9,10 +9,14 @@ dependencies:
   - matplotlib
   - seaborn
   - statsmodels
+  - scipy
   - jupyterlab
   - pyarrow
+  - tqdm
   - pip
   - pip:
+      - arch
       - google-auth
       - google-auth-oauthlib
+      - google-auth-httplib2
       - google-api-python-client
