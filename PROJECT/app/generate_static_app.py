@@ -321,68 +321,68 @@ def build_html(hourly_js, daily_js, station_js, sarima_js, sarimax_js, garch_js,
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
-:root{{--bg:#0a0c10;--surface:#111318;--surface2:#191c23;--border:rgba(255,255,255,0.07);--accent:#e8ff47;--accent2:#47c8ff;--accent3:#ff6b47;--text:#e8eaf0;--muted:#5a5f6e;--on-time:#4ade80;--slight:#facc15;--moderate:#fb923c;--severe:#f87171;--early:#818cf8}}
+:root{{--bg:#ffffff;--surface:#f4f8fc;--surface2:#e8f2fa;--border:#d0e5f5;--accent:#419ad3;--accent-bright:#2589c7;--accent2:#abd6ed;--accent3:#017ac5;--text:#282828;--muted:#7a9ab0;--on-time:#1a9e6a;--slight:#c49a00;--moderate:#d4601a;--severe:#c0312a;--early:#3a7fa8}}
 *,*::before,*::after{{box-sizing:border-box;margin:0;padding:0}}
-body{{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;font-size:13px;min-height:100vh;overflow-x:hidden}}
-header{{padding:22px 28px 16px;border-bottom:1px solid var(--border);display:flex;align-items:flex-end;gap:24px;position:sticky;top:0;background:rgba(10,12,16,0.95);backdrop-filter:blur(12px);z-index:100}}
-.logo-badge{{background:var(--accent);color:#0a0c10;font-family:'Syne',sans-serif;font-weight:800;font-size:18px;padding:3px 11px}}
-.logo-label{{font-family:'Syne',sans-serif;font-size:15px;font-weight:600;color:var(--text)}}
-.logo-sub{{color:var(--muted);font-size:10px;letter-spacing:0.08em}}
-.header-meta{{margin-left:auto;text-align:right;color:var(--muted);font-size:11px;line-height:1.9}}
-.header-meta span{{color:var(--accent)}}
-.shell{{display:grid;grid-template-columns:220px 1fr;min-height:calc(100vh - 65px)}}
-aside{{border-right:1px solid var(--border);padding:18px 14px;display:flex;flex-direction:column;gap:4px}}
+body{{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;font-size:13px;min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased}}
+header{{padding:18px 28px 16px;border-bottom:3px solid var(--accent);display:flex;align-items:flex-end;gap:24px;position:sticky;top:0;background:#ffffff;z-index:100;box-shadow:0 2px 12px rgba(65,154,211,0.12)}}
+.logo-badge{{background:var(--accent);color:#ffffff;font-family:'Syne',sans-serif;font-weight:800;font-size:18px;padding:5px 14px;letter-spacing:0.06em;border-radius:2px}}
+.logo-label{{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:#282828;letter-spacing:-0.01em}}
+.logo-sub{{color:var(--muted);font-size:9px;letter-spacing:0.12em;font-weight:400;text-transform:uppercase}}
+.header-meta{{margin-left:auto;text-align:right;color:var(--muted);font-size:11px;line-height:1.9;font-weight:400}}
+.header-meta span{{color:var(--accent3);font-weight:500}}
+.shell{{display:grid;grid-template-columns:220px 1fr;min-height:calc(100vh - 65px);background:var(--surface)}}
+aside{{border-right:1px solid var(--border);padding:18px 14px;display:flex;flex-direction:column;gap:4px;background:#f8fbfe}}
 .filter-group{{margin-bottom:16px}}
-.filter-label{{font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-bottom:7px;display:block}}
-.nav-btn{{width:100%;text-align:left;background:transparent;border:1px solid transparent;color:var(--muted);padding:8px 11px;cursor:pointer;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.03em;transition:all 0.15s;display:flex;align-items:center;gap:9px}}
-.nav-btn:hover{{color:var(--text);border-color:var(--border)}}
-.nav-btn.active{{color:var(--accent);border-color:var(--accent);background:rgba(232,255,71,0.05)}}
+.filter-label{{font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:#9e9e9e;margin-bottom:7px;display:block;font-weight:500}}
+.nav-btn{{width:100%;text-align:left;background:transparent;border:1px solid transparent;color:#7a9ab0;padding:8px 11px;cursor:pointer;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.03em;transition:all 0.15s;display:flex;align-items:center;gap:9px;border-radius:3px}}
+.nav-btn:hover{{color:var(--accent3);border-color:var(--border);background:#eef6fc}}
+.nav-btn.active{{color:#ffffff;border-color:var(--accent);background:var(--accent);font-weight:500}}
 .nav-btn .icon{{font-size:13px;width:16px;text-align:center}}
-select,input[type=range]{{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:6px 9px;font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;outline:none;margin-bottom:5px}}
-select:focus{{border-color:var(--accent)}}
+select,input[type=range]{{width:100%;background:#ffffff;border:1px solid #ccdae8;color:#282828;padding:6px 9px;font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;outline:none;margin-bottom:5px;border-radius:2px}}
+select:focus{{border-color:var(--accent-bright)}}
 .range-row{{display:flex;justify-content:space-between;color:var(--muted);font-size:10px;margin-top:1px}}
 .filter-pill-row{{display:flex;flex-wrap:wrap;gap:4px;margin-top:3px}}
-.pill{{padding:3px 8px;border:1px solid var(--border);color:var(--muted);font-size:10px;cursor:pointer;transition:all 0.12s;background:transparent;font-family:'DM Mono',monospace}}
-.pill:hover{{border-color:var(--accent);color:var(--accent)}}
-.pill.active{{background:var(--accent);color:#0a0c10;border-color:var(--accent);font-weight:500}}
-main{{padding:20px 24px;overflow-y:auto}}
+.pill{{padding:3px 8px;border:1px solid #ccdae8;color:#7a9ab0;font-size:10px;cursor:pointer;transition:all 0.12s;background:#ffffff;font-family:'DM Mono',monospace;border-radius:2px}}
+.pill:hover{{border-color:var(--accent);color:var(--accent3);background:#eef6fc}}
+.pill.active{{background:var(--accent);color:#ffffff;border-color:var(--accent);font-weight:500}}
+main{{padding:20px 24px;overflow-y:auto;background:#f0f6fb}}
 .tab-pane{{display:none}}
 .tab-pane.active{{display:block}}
 .kpi-strip{{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}}
-.kpi{{background:var(--surface);border:1px solid var(--border);padding:14px 16px;position:relative;overflow:hidden}}
+.kpi{{background:#ffffff;border:1px solid var(--border);padding:14px 16px;position:relative;overflow:hidden;border-radius:2px;box-shadow:0 1px 4px rgba(65,154,211,0.07)}}
 .kpi::before{{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--kpi-color,var(--accent))}}
-.kpi-val{{font-family:'Syne',sans-serif;font-size:28px;font-weight:700;color:var(--kpi-color,var(--accent));line-height:1;margin-bottom:3px}}
-.kpi-lbl{{color:var(--muted);font-size:9px;letter-spacing:0.1em;text-transform:uppercase}}
-.kpi-sub{{color:var(--muted);font-size:10px;margin-top:5px}}
+.kpi-val{{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:var(--kpi-color,var(--accent3));line-height:1;margin-bottom:3px}}
+.kpi-lbl{{color:#9e9e9e;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;font-weight:500}}
+.kpi-sub{{color:#9e9e9e;font-size:10px;margin-top:5px}}
 .panels{{display:grid;gap:12px}}
 .panels-2{{grid-template-columns:1fr 1fr}}
 .panels-3{{grid-template-columns:2fr 1fr}}
-.panel{{background:var(--surface);border:1px solid var(--border);padding:16px 18px}}
-.panel-title{{font-family:'Syne',sans-serif;font-size:12px;font-weight:600;letter-spacing:0.02em;margin-bottom:14px;display:flex;align-items:center;gap:7px}}
-.panel-title .badge{{font-size:8px;letter-spacing:0.1em;padding:2px 5px;background:rgba(232,255,71,0.1);color:var(--accent);font-family:'DM Mono',monospace;font-weight:400}}
-svg text{{font-family:'DM Mono',monospace;fill:var(--muted)}}
+.panel{{background:#ffffff;border:1px solid var(--border);padding:16px 18px;border-radius:2px;box-shadow:0 1px 4px rgba(65,154,211,0.06)}}
+.panel-title{{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;letter-spacing:0.01em;margin-bottom:14px;display:flex;align-items:center;gap:7px;color:#282828}}
+.panel-title .badge{{font-size:8px;letter-spacing:0.1em;padding:2px 6px;background:var(--surface2);color:var(--accent3);font-family:'DM Mono',monospace;font-weight:500;border:1px solid var(--border)}}
+svg text{{font-family:'DM Mono',monospace;fill:#9e9e9e}}
 .pred-grid{{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:18px}}
-.pred-card{{background:var(--surface2);border:1px solid var(--border);padding:14px}}
-.pred-model{{font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:9px}}
+.pred-card{{background:#f4f8fc;border:1px solid var(--border);padding:14px;border-radius:2px}}
+.pred-model{{font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:#9e9e9e;margin-bottom:9px;font-weight:500}}
 .pred-value{{font-family:'Syne',sans-serif;font-size:34px;font-weight:800;line-height:1;margin-bottom:3px}}
 .pred-unit{{font-size:11px;color:var(--muted)}}
-.pred-metrics{{font-size:10px;color:var(--muted);margin-top:7px;line-height:1.8}}
-.pred-metrics span{{color:var(--text)}}
+.pred-metrics{{font-size:10px;color:#9e9e9e;margin-top:7px;line-height:1.8}}
+.pred-metrics span{{color:#282828;font-weight:500}}
 .pred-inputs{{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;margin-bottom:18px}}
 .input-group{{display:flex;flex-direction:column;gap:4px}}
 .input-label{{font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted)}}
-.input-group select,.input-group input{{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:7px 9px;font-family:'DM Mono',monospace;font-size:11px;width:100%;outline:none}}
-.input-group select:focus,.input-group input:focus{{border-color:var(--accent)}}
-.run-btn{{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;padding:11px;background:var(--accent);color:#0a0c10;border:none;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:0.05em;margin-bottom:18px}}
+.input-group select,.input-group input{{background:#ffffff;border:1px solid #ccdae8;color:#282828;padding:7px 9px;font-family:'DM Mono',monospace;font-size:11px;width:100%;outline:none;border-radius:2px}}
+.input-group select:focus,.input-group input:focus{{border-color:var(--accent);outline:2px solid rgba(65,154,211,0.15)}}
+.run-btn{{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;padding:11px;background:var(--accent);color:#ffffff;border:none;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:0.05em;margin-bottom:18px;border-radius:2px;transition:background 0.15s}}
 .run-btn:hover{{opacity:0.88}}
-.section-title{{font-family:'Syne',sans-serif;font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;margin-top:3px;padding-bottom:7px;border-bottom:1px solid var(--border)}}
+.section-title{{font-family:'Syne',sans-serif;font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:#9e9e9e;margin-bottom:12px;margin-top:3px;padding-bottom:7px;border-bottom:2px solid var(--accent);display:inline-block;font-weight:600}}
 .model-info-row{{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}}
-.model-badge{{padding:3px 9px;border:1px solid var(--border);font-size:9px;letter-spacing:0.05em;color:var(--muted)}}
-.model-badge span{{color:var(--text);margin-left:3px}}
+.model-badge{{padding:3px 9px;border:1px solid var(--border);font-size:9px;letter-spacing:0.05em;color:#7a9ab0;background:#f4f8fc;border-radius:2px}}
+.model-badge span{{color:#282828;margin-left:3px;font-weight:500}}
 .legend{{display:flex;gap:14px;flex-wrap:wrap;margin-top:9px}}
-.legend-item{{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted)}}
+.legend-item{{display:flex;align-items:center;gap:5px;font-size:10px;color:#7a9ab0}}
 .legend-dot{{width:7px;height:7px;border-radius:50%}}
-.tooltip{{position:fixed;background:var(--surface2);border:1px solid var(--border);padding:7px 11px;font-size:10px;pointer-events:none;opacity:0;transition:opacity 0.1s;z-index:999;line-height:1.7}}
+.tooltip{{position:fixed;background:#ffffff;border:1px solid var(--border);padding:8px 12px;font-size:10px;pointer-events:none;opacity:0;transition:opacity 0.1s;z-index:999;line-height:1.7;color:#282828;box-shadow:0 4px 16px rgba(65,154,211,0.14);border-radius:2px}}
 .tooltip.show{{opacity:1}}
 </style>
 </head>
@@ -551,12 +551,12 @@ function renderDaily() {{
   const svg = d3.select(el).attr('viewBox',`0 0 ${{w}} ${{h}}`);
   const g = svg.append('g').attr('transform',`translate(${{m.l}},${{m.t}})`);
   const area = d3.area().x(d=>x(new Date(d.date))).y0(d=>y(d.min)).y1(d=>y(d.max)).curve(d3.curveCatmullRom);
-  g.append('path').datum(daily).attr('d',area).attr('fill','rgba(232,255,71,0.06)');
+  g.append('path').datum(daily).attr('d',area).attr('fill','rgba(65,154,211,0.08)');
   const line = d3.line().x(d=>x(new Date(d.date))).y(d=>y(d.avg)).curve(d3.curveCatmullRom);
-  g.append('path').datum(daily).attr('d',line).attr('stroke','var(--accent)').attr('stroke-width',1.5).attr('fill','none');
-  g.append('g').attr('transform',`translate(0,${{H}})`).call(d3.axisBottom(x).ticks(5).tickFormat(d3.timeFormat('%b %d'))).selectAll('text').attr('fill','var(--muted)').attr('font-size','10');
-  g.append('g').call(d3.axisLeft(y).ticks(4).tickFormat(d=>`${{d}}m`)).selectAll('text').attr('fill','var(--muted)').attr('font-size','10');
-  g.selectAll('.domain,.tick line').attr('stroke','var(--border)');
+  g.append('path').datum(daily).attr('d',line).attr('stroke','var(--accent-bright)').attr('stroke-width',1.5).attr('fill','none');
+  g.append('g').attr('transform',`translate(0,${{H}})`).call(d3.axisBottom(x).ticks(5).tickFormat(d3.timeFormat('%b %d'))).selectAll('text').attr('fill','#9e9e9e').attr('font-size','10');
+  g.append('g').call(d3.axisLeft(y).ticks(4).tickFormat(d=>`${{d}}m`)).selectAll('text').attr('fill','#9e9e9e').attr('font-size','10');
+  g.selectAll('.domain,.tick line').attr('stroke','#d0e5f5');
   const bisect = d3.bisector(d=>new Date(d.date)).left;
   svg.append('rect').attr('fill','none').attr('pointer-events','all').attr('x',m.l).attr('y',m.t).attr('width',W).attr('height',H)
     .on('mousemove', function(e) {{ const [mx]=d3.pointer(e,this); const xv=x.invert(mx-m.l); const i=bisect(daily,xv,1); const d=daily[Math.min(i,daily.length-1)]; showTip(`${{d.date}}<br>avg: <b>${{fmt1(d.avg)}} min</b><br>max: ${{fmt1(d.max)}} · temp: ${{d.temp}}°C`, e); }})
@@ -582,8 +582,8 @@ function renderDonut() {{
     .on('mouseover',(e,d)=>showTip(`${{labels[d.index]}}: <b>${{d.value}}</b> (${{(d.value/total*100).toFixed(1)}}%)`,e))
     .on('mousemove',moveTip).on('mouseleave',hideTip);
   const avg = data.map(d=>d[state.target]).reduce((a,b)=>a+b,0)/data.length;
-  g.append('text').attr('text-anchor','middle').attr('dy','-0.2em').attr('font-size','19').attr('fill','var(--text)').attr('font-family','Syne,sans-serif').attr('font-weight','700').text(fmt1(avg));
-  g.append('text').attr('text-anchor','middle').attr('dy','1.2em').attr('font-size','9').attr('fill','var(--muted)').text('avg min');
+  g.append('text').attr('text-anchor','middle').attr('dy','-0.2em').attr('font-size','19').attr('fill','#282828').attr('font-family','Syne,sans-serif').attr('font-weight','700').text(fmt1(avg));
+  g.append('text').attr('text-anchor','middle').attr('dy','1.2em').attr('font-size','9').attr('fill','#9e9e9e').text('avg min');
   document.getElementById('legend-donut').innerHTML = cats.map((c,i) =>
     `<div class="legend-item"><div class="legend-dot" style="background:${{catColor(c)}}"></div>${{labels[i]}}&nbsp;<span style="color:var(--text)">${{(counts[i]/total*100).toFixed(0)}}%</span></div>`
   ).join('');
@@ -605,9 +605,9 @@ function renderHourly() {{
   g.selectAll('rect').data(hours).join('rect')
     .attr('x',d=>x(d.h)).attr('y',d=>y(d.v)).attr('width',x.bandwidth()).attr('height',d=>H-y(d.v)).attr('fill',d=>delayColor(d.v))
     .on('mouseover',(e,d)=>showTip(`Hour ${{d.h}}h<br>avg: <b>${{fmt1(d.v)}} min</b>`,e)).on('mousemove',moveTip).on('mouseleave',hideTip);
-  g.append('g').attr('transform',`translate(0,${{H}})`).call(d3.axisBottom(x).tickFormat(d=>`${{d}}h`)).selectAll('text').attr('fill','var(--muted)').attr('font-size','9');
-  g.append('g').call(d3.axisLeft(y).ticks(4).tickFormat(d=>`${{d}}m`)).selectAll('text').attr('fill','var(--muted)').attr('font-size','9');
-  g.selectAll('.domain,.tick line').attr('stroke','var(--border)');
+  g.append('g').attr('transform',`translate(0,${{H}})`).call(d3.axisBottom(x).tickFormat(d=>`${{d}}h`)).selectAll('text').attr('fill','#9e9e9e').attr('font-size','9');
+  g.append('g').call(d3.axisLeft(y).ticks(4).tickFormat(d=>`${{d}}m`)).selectAll('text').attr('fill','#9e9e9e').attr('font-size','9');
+  g.selectAll('.domain,.tick line').attr('stroke','#d0e5f5');
 }}
 
 // ── DOW BARS ──────────────────────────────────────────────────────────────────
@@ -626,11 +626,11 @@ function renderDow() {{
   const g = svg.append('g').attr('transform',`translate(${{m.l}},${{m.t}})`);
   g.selectAll('rect').data(dows).join('rect')
     .attr('x',d=>x(d.name)).attr('y',d=>y(d.v)).attr('width',x.bandwidth()).attr('height',d=>H-y(d.v))
-    .attr('fill',(_,i)=>i>=5?'var(--accent2)':'rgba(232,255,71,0.55)')
+    .attr('fill',(_,i)=>i>=5?'var(--accent-bright)':'rgba(65,154,211,0.45)')
     .on('mouseover',(e,d)=>showTip(`${{d.name}}<br>avg: <b>${{fmt1(d.v)}} min</b>`,e)).on('mousemove',moveTip).on('mouseleave',hideTip);
-  g.append('g').attr('transform',`translate(0,${{H}})`).call(d3.axisBottom(x)).selectAll('text').attr('fill','var(--muted)').attr('font-size','10');
-  g.append('g').call(d3.axisLeft(y).ticks(4).tickFormat(d=>`${{d}}m`)).selectAll('text').attr('fill','var(--muted)').attr('font-size','9');
-  g.selectAll('.domain,.tick line').attr('stroke','var(--border)');
+  g.append('g').attr('transform',`translate(0,${{H}})`).call(d3.axisBottom(x)).selectAll('text').attr('fill','#9e9e9e').attr('font-size','10');
+  g.append('g').call(d3.axisLeft(y).ticks(4).tickFormat(d=>`${{d}}m`)).selectAll('text').attr('fill','#9e9e9e').attr('font-size','9');
+  g.selectAll('.domain,.tick line').attr('stroke','#d0e5f5');
 }}
 
 // ── TIME SERIES ───────────────────────────────────────────────────────────────
@@ -647,11 +647,11 @@ function renderTS() {{
   const svg = d3.select(el).attr('viewBox',`0 0 ${{w}} ${{h}}`);
   const g = svg.append('g').attr('transform',`translate(${{m.l}},${{m.t}})`);
   const mkLine=(key,color,op=1)=>{{const line=d3.line().x(d=>x(parseTs(d))).y(d=>y(d[key])).curve(d3.curveCatmullRom.alpha(0.5));g.append('path').datum(data).attr('d',line).attr('stroke',color).attr('stroke-width',1).attr('fill','none').attr('opacity',op);}};
-  mkLine('d1','rgba(255,107,71,0.4)');mkLine('d2','rgba(71,200,255,0.4)');mkLine('td','var(--accent)',0.9);
-  g.append('g').attr('transform',`translate(0,${{H}})`).call(d3.axisBottom(x).ticks(6).tickFormat(d3.timeFormat('%b %d'))).selectAll('text').attr('fill','var(--muted)').attr('font-size','10');
-  g.append('g').call(d3.axisLeft(y).ticks(5).tickFormat(d=>`${{d}}m`)).selectAll('text').attr('fill','var(--muted)').attr('font-size','10');
-  g.selectAll('.domain,.tick line').attr('stroke','var(--border)');
-  document.getElementById('legend-ts').innerHTML=[['var(--accent)','Type 1&2 mean'],['var(--accent3)','Type 1'],['var(--accent2)','Type 2']].map(([c,l])=>`<div class="legend-item"><div class="legend-dot" style="background:${{c}}"></div>${{l}}</div>`).join('');
+  mkLine('d1','rgba(1,122,197,0.45)');mkLine('d2','rgba(171,214,237,0.55)');mkLine('td','var(--accent-bright)',0.95);
+  g.append('g').attr('transform',`translate(0,${{H}})`).call(d3.axisBottom(x).ticks(6).tickFormat(d3.timeFormat('%b %d'))).selectAll('text').attr('fill','#9e9e9e').attr('font-size','10');
+  g.append('g').call(d3.axisLeft(y).ticks(5).tickFormat(d=>`${{d}}m`)).selectAll('text').attr('fill','#9e9e9e').attr('font-size','10');
+  g.selectAll('.domain,.tick line').attr('stroke','#d0e5f5');
+  document.getElementById('legend-ts').innerHTML=[['var(--accent-bright)','Type 1&2 mean'],['rgba(1,122,197,0.9)','Type 1'],['var(--accent2)','Type 2']].map(([c,l])=>`<div class="legend-item"><div class="legend-dot" style="background:${{c}}"></div>${{l}}</div>`).join('');
 }}
 
 // ── ROLLING ───────────────────────────────────────────────────────────────────
@@ -667,12 +667,12 @@ function renderRolling() {{
   const svg = d3.select(el).attr('viewBox',`0 0 ${{w}} ${{h}}`);
   const g = svg.append('g').attr('transform',`translate(${{m.l}},${{m.t}})`);
   const area=d3.area().x(d=>x(new Date(d.date))).y0(H).y1(d=>y(d.avg)).curve(d3.curveCatmullRom);
-  g.append('path').datum(rolled).attr('d',area).attr('fill','rgba(232,255,71,0.04)');
+  g.append('path').datum(rolled).attr('d',area).attr('fill','rgba(65,154,211,0.06)');
   const line=d3.line().x(d=>x(new Date(d.date))).y(d=>y(d.avg)).curve(d3.curveCatmullRom);
-  g.append('path').datum(rolled).attr('d',line).attr('stroke','var(--accent)').attr('stroke-width',1.5).attr('fill','none');
-  g.append('g').attr('transform',`translate(0,${{H}})`).call(d3.axisBottom(x).ticks(4).tickFormat(d3.timeFormat('%b %d'))).selectAll('text').attr('fill','var(--muted)').attr('font-size','10');
-  g.append('g').call(d3.axisLeft(y).ticks(4).tickFormat(d=>`${{d}}m`)).selectAll('text').attr('fill','var(--muted)').attr('font-size','10');
-  g.selectAll('.domain,.tick line').attr('stroke','var(--border)');
+  g.append('path').datum(rolled).attr('d',line).attr('stroke','var(--accent-bright)').attr('stroke-width',1.5).attr('fill','none');
+  g.append('g').attr('transform',`translate(0,${{H}})`).call(d3.axisBottom(x).ticks(4).tickFormat(d3.timeFormat('%b %d'))).selectAll('text').attr('fill','#9e9e9e').attr('font-size','10');
+  g.append('g').call(d3.axisLeft(y).ticks(4).tickFormat(d=>`${{d}}m`)).selectAll('text').attr('fill','#9e9e9e').attr('font-size','10');
+  g.selectAll('.domain,.tick line').attr('stroke','#d0e5f5');
 }}
 
 // ── SCATTER ───────────────────────────────────────────────────────────────────
@@ -696,10 +696,10 @@ function renderScatter() {{
   const slope=xv.map((xi,i)=>(xi-mx)*(yv[i]-my)).reduce((a,b)=>a+b)/xv.map(xi=>(xi-mx)**2).reduce((a,b)=>a+b);
   const intercept=my-slope*mx;
   const x0=d3.min(xv), x1=d3.max(xv);
-  g.append('line').attr('x1',x(x0)).attr('y1',y(slope*x0+intercept)).attr('x2',x(x1)).attr('y2',y(slope*x1+intercept)).attr('stroke','var(--accent)').attr('stroke-width',1).attr('stroke-dasharray','4,3').attr('opacity',0.7);
-  g.append('g').attr('transform',`translate(0,${{H}})`).call(d3.axisBottom(x).ticks(4).tickFormat(d=>`${{d}}°`)).selectAll('text').attr('fill','var(--muted)').attr('font-size','10');
-  g.append('g').call(d3.axisLeft(y).ticks(4).tickFormat(d=>`${{d}}m`)).selectAll('text').attr('fill','var(--muted)').attr('font-size','10');
-  g.selectAll('.domain,.tick line').attr('stroke','var(--border)');
+  g.append('line').attr('x1',x(x0)).attr('y1',y(slope*x0+intercept)).attr('x2',x(x1)).attr('y2',y(slope*x1+intercept)).attr('stroke','var(--accent-bright)').attr('stroke-width',1).attr('stroke-dasharray','4,3').attr('opacity',0.7);
+  g.append('g').attr('transform',`translate(0,${{H}})`).call(d3.axisBottom(x).ticks(4).tickFormat(d=>`${{d}}°`)).selectAll('text').attr('fill','#9e9e9e').attr('font-size','10');
+  g.append('g').call(d3.axisLeft(y).ticks(4).tickFormat(d=>`${{d}}m`)).selectAll('text').attr('fill','#9e9e9e').attr('font-size','10');
+  g.selectAll('.domain,.tick line').attr('stroke','#d0e5f5');
 }}
 
 // ── STATIONS BAR ──────────────────────────────────────────────────────────────
@@ -712,14 +712,14 @@ function renderStationsBar() {{
   const y=d3.scaleBand().domain(agg.map(d=>d.station_name)).range([0,H]).padding(0.25);
   const svg=d3.select(el).attr('viewBox',`0 0 ${{w}} ${{h}}`);
   const g=svg.append('g').attr('transform',`translate(${{m.l}},${{m.t}})`);
-  g.selectAll('.ebar').data(agg).join('line').attr('x1',d=>x(d.min)).attr('x2',d=>x(d.max)).attr('y1',d=>y(d.station_name)+y.bandwidth()/2).attr('y2',d=>y(d.station_name)+y.bandwidth()/2).attr('stroke','var(--border)').attr('stroke-width',1.5);
+  g.selectAll('.ebar').data(agg).join('line').attr('x1',d=>x(d.min)).attr('x2',d=>x(d.max)).attr('y1',d=>y(d.station_name)+y.bandwidth()/2).attr('y2',d=>y(d.station_name)+y.bandwidth()/2).attr('stroke','#d0e5f5').attr('stroke-width',1.5);
   g.selectAll('rect').data(agg).join('rect').attr('x',0).attr('y',d=>y(d.station_name)).attr('width',d=>x(d.mean)).attr('height',y.bandwidth()).attr('fill',d=>delayColor(d.mean))
     .on('mouseover',(e,d)=>showTip(`<b>${{d.station_name}}</b><br>avg: ${{fmt1(d.mean)}} min<br>range: ${{fmt1(d.min)}}–${{fmt1(d.max)}} min`,e)).on('mousemove',moveTip).on('mouseleave',hideTip);
-  g.selectAll('.val').data(agg).join('text').attr('x',d=>x(d.mean)+4).attr('y',d=>y(d.station_name)+y.bandwidth()/2).attr('dominant-baseline','middle').attr('font-size','10').attr('fill','var(--muted)').text(d=>`${{fmt1(d.mean)}}m`);
-  g.append('g').call(d3.axisLeft(y).tickSize(0)).selectAll('text').attr('fill','var(--text)').attr('font-size','10').attr('dx','-5');
+  g.selectAll('.val').data(agg).join('text').attr('x',d=>x(d.mean)+4).attr('y',d=>y(d.station_name)+y.bandwidth()/2).attr('dominant-baseline','middle').attr('font-size','10').attr('fill','#9e9e9e').text(d=>`${{fmt1(d.mean)}}m`);
+  g.append('g').call(d3.axisLeft(y).tickSize(0)).selectAll('text').attr('fill','#282828').attr('font-size','10').attr('dx','-5');
   g.select('.domain').remove();
-  g.append('g').attr('transform',`translate(0,${{H}})`).call(d3.axisBottom(x).ticks(4).tickFormat(d=>`${{d}}m`)).selectAll('text').attr('fill','var(--muted)').attr('font-size','10');
-  g.selectAll('.tick line').attr('stroke','var(--border)');
+  g.append('g').attr('transform',`translate(0,${{H}})`).call(d3.axisBottom(x).ticks(4).tickFormat(d=>`${{d}}m`)).selectAll('text').attr('fill','#9e9e9e').attr('font-size','10');
+  g.selectAll('.tick line').attr('stroke','#d0e5f5');
 }}
 
 // ── HEATMAP ───────────────────────────────────────────────────────────────────
@@ -730,14 +730,14 @@ function renderHeatmap() {{
   const dates    = [...new Set(daily.map(d=>d.date))].sort();
   const CELL=10, LABEL_W=195, TOP=45;
   const w=LABEL_W+dates.length*CELL, h=TOP+stations.length*CELL;
-  const colorScale = d3.scaleSequential(d3.interpolateRgb('#0a0c10','#e8ff47')).domain([0,8]);
+  const colorScale = d3.scaleSequential(d3.interpolateRgb('#e8f4fc','#017ac5')).domain([0,15]);
   const svg = d3.create('svg').attr('width','100%').attr('viewBox',`0 0 ${{w}} ${{h}}`);
   dates.forEach((date,di)=>{{
     if(di%7!==0)return;
-    svg.append('text').attr('x',LABEL_W+di*CELL+CELL/2).attr('y',TOP-5).attr('font-size',8).attr('fill','var(--muted)').attr('text-anchor','middle').attr('transform',`rotate(-45,${{LABEL_W+di*CELL+CELL/2}},${{TOP-5}})`).text(date.slice(5));
+    svg.append('text').attr('x',LABEL_W+di*CELL+CELL/2).attr('y',TOP-5).attr('font-size',8).attr('fill','#9e9e9e').attr('text-anchor','middle').attr('transform',`rotate(-45,${{LABEL_W+di*CELL+CELL/2}},${{TOP-5}})`).text(date.slice(5));
   }});
   stations.forEach((stn,si)=>{{
-    svg.append('text').attr('x',LABEL_W-5).attr('y',TOP+si*CELL+CELL/2+1).attr('text-anchor','end').attr('dominant-baseline','middle').attr('font-size',8.5).attr('fill','var(--muted)').text(stn);
+    svg.append('text').attr('x',LABEL_W-5).attr('y',TOP+si*CELL+CELL/2+1).attr('text-anchor','end').attr('dominant-baseline','middle').attr('font-size',8.5).attr('fill','#9e9e9e').text(stn);
     dates.forEach((date,di)=>{{
       const row=daily.find(d=>d.stn===stn&&d.date===date);
       const val=row?row.delay:null;
@@ -812,9 +812,9 @@ function runPrediction() {{
   const sarima_fc=sarimaCast(horizon), sarimax_fc=sarimaxCast(horizon,temp,dow,0), garch_fc=garchCast(horizon);
   const hourIdx=Math.min(Math.max(hour-5,0),horizon-1);
   document.getElementById('pred-grid').innerHTML=[
-    {{model:'SARIMA (1,0,1)(2,0,1,24)',val:sarima_fc.mean[hourIdx], color:'var(--accent)',  mae:META.models.sarima.mae,  rmse:META.models.sarima.rmse,  note:'Seasonal ARIMA — captures 24h cycle'}},
-    {{model:'SARIMAX + Exogenous',     val:sarimax_fc.mean[hourIdx],color:'var(--accent2)', mae:META.models.sarimax.mae, rmse:META.models.sarimax.rmse, note:'Adds temp, DoW, holiday regressors'}},
-    {{model:'GARCH (1,1) Const. Mean', val:garch_fc.mean[0],        color:'rgba(255,107,71,0.9)', mae:null,rmse:null, note:`Volatility model · persistence: ${{GARCH_CFG.persistence}}`}},
+    {{model:'SARIMA (1,0,1)(2,0,1,24)',val:sarima_fc.mean[hourIdx], color:'var(--accent-bright)', mae:META.models.sarima.mae,  rmse:META.models.sarima.rmse,  note:'Seasonal ARIMA — captures 24h cycle'}},
+    {{model:'SARIMAX + Exogenous',     val:sarimax_fc.mean[hourIdx],color:'var(--accent2)',      mae:META.models.sarimax.mae, rmse:META.models.sarimax.rmse, note:'Adds temp, DoW, holiday regressors'}},
+    {{model:'GARCH (1,1) Const. Mean', val:garch_fc.mean[0],        color:'var(--accent3)',       mae:null,rmse:null, note:`Volatility model · persistence: ${{GARCH_CFG.persistence}}`}},
   ].map(c=>`<div class="pred-card"><div class="pred-model">${{c.model}}</div><div class="pred-value" style="color:${{c.color}}">${{fmt1(c.val)}}<span class="pred-unit"> min</span></div><div style="font-size:10px;color:var(--muted);margin-top:3px">${{c.note}}</div><div class="pred-metrics">${{c.mae!==null?`MAE <span>${{c.mae}} min</span> · RMSE <span>${{c.rmse}} min</span>`:`μ: <span>${{fmt1(GARCH_CFG.params.mu)}} min</span> · σ∞: <span>${{fmt1(GARCH_CFG.unconditional_vol)}} min</span>`}}</div></div>`).join('');
   document.getElementById('model-info-row').innerHTML=[
     `Train: ${{META.train_range.start.slice(0,10)}} → ${{META.train_range.end.slice(0,10)}}`,
@@ -835,19 +835,19 @@ function renderForecastChart(sarima_fc,sarimax_fc,garch_fc,horizon) {{
   const g=svg.append('g').attr('transform',`translate(${{m.l}},${{m.t}})`);
   const bandData=xs.map(i=>({{x:i,upper:garch_fc.mean[i]+1.96*garch_fc.sigmas[i],lower:garch_fc.mean[i]-1.96*garch_fc.sigmas[i]}}));
   const area=d3.area().x(d=>x(d.x)).y0(d=>y(d.lower)).y1(d=>y(d.upper));
-  g.append('path').datum(bandData).attr('d',area).attr('fill','rgba(71,200,255,0.07)');
+  g.append('path').datum(bandData).attr('d',area).attr('fill','rgba(65,154,211,0.09)');
   const mkL=(vals,color,dash='')=>{{const line=d3.line().x((_,i)=>x(i)).y(v=>y(v));g.append('path').datum(vals).attr('d',line).attr('stroke',color).attr('stroke-width',1.5).attr('fill','none').attr('stroke-dasharray',dash);}};
-  mkL(bandData.map(d=>d.upper),'rgba(71,200,255,0.3)','3,3');mkL(bandData.map(d=>d.lower),'rgba(71,200,255,0.3)','3,3');
-  mkL(garch_fc.mean,'rgba(255,107,71,0.85)','5,3');mkL(sarima_fc.mean,'var(--accent)');mkL(sarimax_fc.mean,'var(--accent2)');
-  const vLine=g.append('line').attr('stroke','var(--border)').attr('y1',0).attr('y2',H).style('opacity',0);
+  mkL(bandData.map(d=>d.upper),'rgba(65,154,211,0.4)','3,3');mkL(bandData.map(d=>d.lower),'rgba(65,154,211,0.4)','3,3');
+  mkL(garch_fc.mean,'rgba(1,122,197,0.8)','5,3');mkL(sarima_fc.mean,'var(--accent-bright)');mkL(sarimax_fc.mean,'var(--accent2)');
+  const vLine=g.append('line').attr('stroke','rgba(1,122,197,0.3)').attr('y1',0).attr('y2',H).style('opacity',0);
   g.append('rect').attr('fill','none').attr('pointer-events','all').attr('width',W).attr('height',H)
     .on('mousemove',function(e){{const[mx]=d3.pointer(e,this);const xi=Math.round(x.invert(mx));if(xi<0||xi>=horizon)return;vLine.attr('x1',x(xi)).attr('x2',x(xi)).style('opacity',1);showTip(`Hour +${{xi}}<br>SARIMA: <b>${{fmt1(sarima_fc.mean[xi])}} min</b><br>SARIMAX: <b>${{fmt1(sarimax_fc.mean[xi])}} min</b><br>GARCH μ: <b>${{fmt1(garch_fc.mean[xi])}} min</b> ±${{fmt1(1.96*garch_fc.sigmas[xi])}}`,e);}})
     .on('mouseleave',()=>{{vLine.style('opacity',0);hideTip();}});
   const xTicks=d3.range(0,horizon+1,6);
-  g.append('g').attr('transform',`translate(0,${{H}})`).call(d3.axisBottom(x).tickValues(xTicks).tickFormat(d=>`+${{d}}h`)).selectAll('text').attr('fill','var(--muted)').attr('font-size','10');
-  g.append('g').call(d3.axisLeft(y).ticks(5).tickFormat(d=>`${{d}}m`)).selectAll('text').attr('fill','var(--muted)').attr('font-size','10');
-  g.selectAll('.domain,.tick line').attr('stroke','var(--border)');
-  document.getElementById('legend-forecast').innerHTML=[['var(--accent)','SARIMA'],['var(--accent2)','SARIMAX'],['rgba(255,107,71,0.9)','GARCH mean'],['rgba(71,200,255,0.3)','GARCH 95% CI']].map(([c,l])=>`<div class="legend-item"><div class="legend-dot" style="background:${{c}}"></div>${{l}}</div>`).join('');
+  g.append('g').attr('transform',`translate(0,${{H}})`).call(d3.axisBottom(x).tickValues(xTicks).tickFormat(d=>`+${{d}}h`)).selectAll('text').attr('fill','#9e9e9e').attr('font-size','10');
+  g.append('g').call(d3.axisLeft(y).ticks(5).tickFormat(d=>`${{d}}m`)).selectAll('text').attr('fill','#9e9e9e').attr('font-size','10');
+  g.selectAll('.domain,.tick line').attr('stroke','#d0e5f5');
+  document.getElementById('legend-forecast').innerHTML=[['var(--accent-bright)','SARIMA'],['var(--accent2)','SARIMAX'],['rgba(1,122,197,0.8)','GARCH mean'],['rgba(65,154,211,0.4)','GARCH 95% CI']].map(([c,l])=>`<div class="legend-item"><div class="legend-dot" style="background:${{c}}"></div>${{l}}</div>`).join('');
 }}
 
 // ── NAVIGATION ────────────────────────────────────────────────────────────────
