@@ -348,9 +348,9 @@ def build_features(data_dir):
     #   - last "actual departure"
     #   - keep only one representative stop_sequence
     # Computated fields to add:
-    #   - delays (in minutes:
-    #       - delay_type_1 = last_actual_arrival - first_planned_arrival (should coincide with delay declared by Renfe)
-    #       - delay_type_2 = last_actual_arrival - last_planned_arrival (should be the whole delay discarding potential adjustments by Renfe)
+    #   - delays (in minutes):
+    #       - delay_type_1 = last_actual_arrival - first_planned_arrival (true operational delay: how late the train is vs the ORIGINAL timetable, before any Renfe adjustment)
+    #       - delay_type_2 = last_actual_arrival - last_planned_arrival (passenger-facing delay: residual delay after Renfe has adjusted the published timetable)
     #   - "lie" on the delay (schedule adjustment due to delay):
     #       - schedule_adjustment_minutes = last_planned_arrival - first_planned_arrival
     #       - delay_masking_minutes = delay_type_1 - delay_type_2 (the higher this is, the more Renfe adjusts the schedule due to delay)
@@ -380,13 +380,17 @@ def build_features(data_dir):
     tt_df["delay_masking_minutes"] = tt_df["delay_type_1"] - tt_df["delay_type_2"]  # = last_planned_arrival - first_planned_arrival (schedule adjustment: how much Renfe moved the planned time forward to mask accumulated delay)
 
     # 1. Temporal bounds and null checks (data cleaning)
-    tt_df["target_delay"] = tt_df["delay_type_2"]
+    # target_delay is delay_type_1: actual arrival minus the FIRST planned arrival,
+    # i.e. the true operational delay before any Renfe schedule adjustment.
+    tt_df["target_delay"] = tt_df["delay_type_1"]
     tt_df = tt_df.dropna(subset=["planned_arrival_dt", "actual_arrival_dt", "target_delay"])
-    tt_df = tt_df[(tt_df["target_delay"] >= -60) & (tt_df["target_delay"] <= 300)]
-    # Apply the same bounds to delay_type_1 so that delay_masking_minutes is not
-    # contaminated by API artefacts where first_planned_arrival was recorded from
-    # a different day's snapshot (producing spurious +-1440-minute values).
-    tt_df = tt_df[(tt_df["delay_type_1"] >= -60) & (tt_df["delay_type_1"] <= 300)]
+    # Apply [-60, 720] min bounds to both delay variants to remove API artefacts
+    # (spurious +-1440-minute values from cancelled services re-entered with
+    # incorrect timestamps). Filtering on target_delay (= delay_type_1) is the
+    # primary gate; delay_type_2 is also bounded so delay_masking_minutes remains
+    # meaningful and is not contaminated by out-of-range type_2 values.
+    tt_df = tt_df[(tt_df["target_delay"] >= -60) & (tt_df["target_delay"] <= 720)]
+    tt_df = tt_df[(tt_df["delay_type_2"] >= -60) & (tt_df["delay_type_2"] <= 300)]
 
     # 2. Extract base temporal features
     tt_df["hour"] = tt_df["planned_arrival_dt"].dt.hour
@@ -450,8 +454,11 @@ def build_features(data_dir):
     # station_id is added as a secondary key so ties in planned_arrival_dt are
     # broken consistently across runs.
     tt_df = tt_df.sort_values(by=["train_instance_id", "planned_arrival_dt", "station_id"])
+    # prev_station_delay is computed from delay_type_1 (= target_delay) so that
+    # both the target and its lag refer to the same delay definition: true
+    # operational delay before any Renfe schedule adjustment.
     tt_df["prev_station_delay"] = (
-        tt_df.groupby("train_instance_id")["target_delay"].shift(1).fillna(0)
+        tt_df.groupby("train_instance_id")["delay_type_1"].shift(1).fillna(0)
     )  # fill first station delay with 0
 
     tt_df = _infer_directions(tt_df, direction1_order, direction2_order)
@@ -491,5 +498,5 @@ if __name__ == "__main__":
     print("\nMissing values:")
     print(tt_df.isna().sum())
 
-    print("\nTarget delay summary:")
+    print("\nTarget delay summary (delay_type_1):")
     print(tt_df["target_delay"].describe())
