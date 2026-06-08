@@ -13,7 +13,7 @@ pip install pyarrow
 Copy `credentials.json` into the project root. Then authenticate:
 
 ```bash
-python src/download.py
+python src/utils/download.py
 ```
 
 The first run opens a browser OAuth flow and catches the token in `token.json`. Subsequent runs refresh authomatically.
@@ -23,25 +23,25 @@ The first run opens a browser OAuth flow and catches the token in `token.json`. 
 **Everything available on Drive:**
 
 ```bash
-python src/download.py
+python src/utils/download.py
 ```
 
 **Specific tables:**
 
 ```bash
-python src/download.py --tables trains timetables
+python src/utils/download.py --tables trains timetables
 ```
 
 **Date range:**
 
 ```bash
-python src/download.py --start 2026_03_15 --end 2026_03_21
+python src/utils/download.py --start 2026_03_15 --end 2026_03_21
 ```
 
 **Re-download existing files:**
 
 ```bash
-python src/download.py --force
+python src/utils/download.py --force
 ```
 
 Downloaded files are saved to `data/` (gitignored).
